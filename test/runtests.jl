@@ -36,9 +36,13 @@ end
         @test flatmap(i -> [cnt[] += 1], 1:3)::Vector{Int} == [1, 2, 3]
         @test cnt[] == 3
 
-        @test @inferred(flatmap(i -> (j for j in 1:i), (i for i in 1:3))) == [1, 1,2, 1,2,3]
+        @test @inferred(flatmap(i -> (j for j in 1:i), (i for i in 1:3))) == [1, 1,2, 1,2,3]  # XXX: Vector{Any}
         @test @inferred(flatmap(i -> 1:i, [1 3; 2 4]))::Vector{Int} == [1, 1,2, 1,2,3, 1,2,3,4]
         @test @inferred(flatmap(i -> reshape(1:i, 2, :), [2, 4]))::Vector{Int} == [1, 2, 1, 2, 3, 4]
+
+        @test_broken flatmap(i -> 1:i, [1][1:0]) == []
+        @test @inferred(flatmap(i -> collect(1:i), [1][1:0]))::Vector{Int} == []
+        @test @inferred(flatmap(i -> (j for j in 1:i), (i for i in 1:0))) == []  # XXX: Vector{Any}
 
         X = [(a=[1, 2],), (a=[3, 4],)]
         out = Int[]
@@ -49,9 +53,12 @@ end
         X = [(a=[1, 2],), (a=[3, 4],)]
         @test flatmap(x -> x.a, (x, a) -> (a, sum(x.a)), X) == [(1, 3), (2, 3), (3, 7), (4, 7)]
 
+        @test flatmap(x -> x.a, (x, a) -> (a, sum(x.a)), X[1:0])::Vector{Int} == []
+
         out = Tuple{Int, Int}[]
         @test flatmap!(x -> x.a, (x, a) -> (a, sum(x.a)), out, X) === out == [(1, 3), (2, 3), (3, 7), (4, 7)]
 
+        @test @inferred(flatmap(i -> (j for j in 1:i), (i, j) -> i + j, (i for i in 1:3))) == [2, 3,4, 4,5,6]
 
         cnt_out = Ref(0)
         cnt_in = Ref(0)
