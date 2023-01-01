@@ -4,15 +4,16 @@ using Accessors
 using InverseFunctions
 using StructArrays
 using Dictionaries
+# using Reexport
+# @reexport using Skipper
+# @reexport using FlexiGroups
 
 export
     @S_str,
     filtermap,
     flatmap, flatmap!, flatten, flatten!,
     mutate, mutateview,
-    group, groupfind, groupview, groupmap,
     filterview,
-    skip, skipnan,
     mapview, maprange,
     findonly,
     sortview, uniqueview,
@@ -25,9 +26,7 @@ include("views.jl")
 include("filtermap.jl")
 include("flatmap.jl")
 include("mutate.jl")
-include("group.jl")
 include("filterview.jl")
-include("skip.jl")
 include("mapview.jl")
 include("uniqueview.jl")
 include("sentinelview.jl")
