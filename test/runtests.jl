@@ -235,8 +235,8 @@ end
 
     @testset "dictionary" begin
         using Dictionaries
-
-        Base.similar(d::AbstractDictionary, dims::Base.OneTo) = similar(Vector{valtype(d)}, dims)
+        # view(dct, range) doesn't work for dictionaries by default
+        Base.view(d::AbstractDictionary, inds::AbstractArray) = Dictionaries.ViewArray{valtype(d), ndims(inds)}(d, inds)
 
         xs = dictionary(3 .* [1, 2, 3, 4, 5] .=> 1:5)
         g = @inferred group(isodd, xs)
@@ -244,13 +244,12 @@ end
         @test isconcretetype(eltype(g))
         @test g[false] == [2, 4]
 
-        # view(dct, range) doesn't work for dictionaries
-        # g = @inferred groupview(isodd, xs)
-        # @test g == dictionary([true => [1, 3, 5], false => [2, 4]])
-        # @test isconcretetype(eltype(g))
-        # @test g[false] == [2, 4]
-        # xs[6] = 123
-        # @test g == dictionary([false => [123, 4], true => [1, 3, 5]])
+        g = @inferred groupview(isodd, xs)
+        @test g == dictionary([true => [1, 3, 5], false => [2, 4]])
+        @test isconcretetype(eltype(g))
+        @test g[false] == [2, 4]
+        xs[6] = 123
+        @test g == dictionary([true => [1, 3, 5], false => [123, 4]])
     end
 end
 
