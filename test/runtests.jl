@@ -41,13 +41,13 @@ end
         @test flatmap(i -> [cnt[] += 1], 1:3)::Vector{Int} == [1, 2, 3]
         @test cnt[] == 3
 
-        @test @inferred(flatmap(i -> (j for j in 1:i), (i for i in 1:3))) == [1, 1,2, 1,2,3]  # XXX: Vector{Any}
+        @test @inferred(flatmap(i -> (j for j in 1:i), (i for i in 1:3)))::Vector{Int} == [1, 1,2, 1,2,3]
         @test @inferred(flatmap(i -> 1:i, [1 3; 2 4]))::Vector{Int} == [1, 1,2, 1,2,3, 1,2,3,4]
         @test @inferred(flatmap(i -> reshape(1:i, 2, :), [2, 4]))::Vector{Int} == [1, 2, 1, 2, 3, 4]
 
         @test_broken flatmap(i -> 1:i, [1][1:0]) == []
         @test @inferred(flatmap(i -> collect(1:i), [1][1:0]))::Vector{Int} == []
-        @test @inferred(flatmap(i -> (j for j in 1:i), (i for i in 1:0))) == []  # XXX: Vector{Any}
+        @test @inferred(flatmap(i -> (j for j in 1:i), (i for i in 1:0)))::Vector{Int} == []
 
         X = [(a=[1, 2],), (a=[3, 4],)]
         out = Int[]
@@ -289,6 +289,7 @@ end
     @test @inferred(eltype(skip(isnothing, [1, missing, nothing, 2, 3]))) == Union{Int, Missing}
     @test @inferred(eltype(skip(x -> !(x isa Int), [1, missing, nothing, 2, 3]))) == Int
     @test @inferred(eltype(skip(x -> ismissing(x) || x < 0, [1, missing, 2, 3]))) == Int
+    @test @inferred(eltype(skip(x -> ismissing(x) || x < 0, (x for x in [1, missing, 2, 3])))) == Int
 
     a = StructArray(a=[missing, -1, 2, 3])
     sa = @inferred skip(x -> ismissing(x.a) || x.a < 0, a)

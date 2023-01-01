@@ -55,7 +55,7 @@ end
 function _group_core(f, X::AbstractArray, vals::AbstractArray)
     ngroups = 0
     groups = similar(X, Int)
-    dct = Dict{Core.Compiler.return_type(f, Tuple{valtype(X)}), Int}()
+    dct = Dict{Core.Compiler.return_type(f, Tuple{_valtype(X)}), Int}()
     @inbounds for (i, x) in pairs(X)
         groups[i] = gid = get!(dct, f(x), ngroups + 1)
         if gid == ngroups + 1
@@ -71,7 +71,7 @@ function _group_core(f, X::AbstractArray, vals::AbstractArray)
     push!(starts, length(groups))
 
     rperm = similar(vals, Base.OneTo(length(vals)))
-    # rperm = Vector{eltype(vals)}(undef, length(X))
+    # rperm = Vector{_eltype(vals)}(undef, length(X))
     @inbounds for (v, gid) in zip(vals, groups)
         rperm[starts[gid]] = v
         starts[gid] -= 1
@@ -83,13 +83,11 @@ function _group_core(f, X::AbstractArray, vals::AbstractArray)
     return (; dct, starts, rperm)
 end
 
-Base.valtype(X) = eltype(values(X))
-
 
 function _group_core(f, X, vals)
     ngroups = 0
     groups = Int[]
-    dct = Dict{Core.Compiler.return_type(f, Tuple{valtype(X)}), Int}()
+    dct = Dict{Core.Compiler.return_type(f, Tuple{_valtype(X)}), Int}()
     @inbounds for x in X
         gid = get!(dct, f(x), ngroups + 1)
         push!(groups, gid)
@@ -105,7 +103,7 @@ function _group_core(f, X, vals)
     cumsum!(starts, starts)
     push!(starts, length(groups))
 
-    rperm = Vector{eltype(vals)}(undef, length(groups))
+    rperm = Vector{_eltype(vals)}(undef, length(groups))
     @inbounds for (v, gid) in zip(vals, groups)
         rperm[starts[gid]] = v
         starts[gid] -= 1

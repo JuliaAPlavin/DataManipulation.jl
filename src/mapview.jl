@@ -59,12 +59,7 @@ parent_type(::Type{MappedAny{F, TX}}) where {F, TX} = TX
 Base.@propagate_inbounds Base.getindex(A::MappedAny, I...) = _f(A)(parent(A)[I...])
 Base.@propagate_inbounds Base.setindex!(A::MappedAny, v, I...) = (parent(A)[I...] = set(parent(A)[I...], _f(A), v); A)
 
-Base.eltype(A::MappedAny) = Core.Compiler.return_type(_f(A), Tuple{eltype(parent(A))})
-function Base.eltype(::Type{T}) where {T}
-    # by default, Base.eltype returns Any for mapped/flattened iterators
-    ET = Core.Compiler.return_type(first, Tuple{T})
-    ET === Union{} ? Any : ET
-end
+Base.eltype(A::MappedAny) = Core.Compiler.return_type(_f(A), Tuple{_eltype(parent(A))})
 
 @inline function Base.iterate(A::MappedAny, state...)
 	it = iterate(parent(A), state...)

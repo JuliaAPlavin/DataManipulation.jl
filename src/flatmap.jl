@@ -19,11 +19,11 @@ end
 
 # rougly reduce(vcat, map(a -> map(b -> f_in(a, b), f_out(a)), A))
 function flatmap(f_out::Function, f_in::Function, A)
-    TO = eltype(Base.promote_op(f_out, eltype(A)))
-    T = Base.promote_op(f_in, eltype(A), TO)
+    TO = _eltype(Base.promote_op(f_out, _eltype(A)))
+    T = Base.promote_op(f_in, _eltype(A), TO)
     it = iterate(A)
     if isnothing(it)
-        return _empty_from_type(Base.promote_op(f_out, eltype(A)), T)
+        return _empty_from_type(Base.promote_op(f_out, _eltype(A)), T)
     end
     afirst, state = it
     arest = Iterators.rest(A, state)
@@ -37,10 +37,10 @@ function flatmap(f_out::Function, f_in::Function, A)
 end
 
 function flatmap(f::Function, A)
-    T = eltype(Base.promote_op(f, eltype(A)))
+    T = _eltype(Base.promote_op(f, _eltype(A)))
     it = iterate(A)
     if isnothing(it)
-        return _empty_from_type(Base.promote_op(f, eltype(A)), T)
+        return _empty_from_type(Base.promote_op(f, _eltype(A)), T)
     end
     afirst, state = it
     arest = Iterators.rest(A, state)

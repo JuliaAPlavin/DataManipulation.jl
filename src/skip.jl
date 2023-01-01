@@ -10,7 +10,7 @@ _pred(s::Skip) = getfield(s, :pred)
 Base.parent(s::Skip) = getfield(s, :parent)
 Base.IteratorSize(::Type{<:Skip}) = Base.SizeUnknown()
 Base.IteratorEltype(::Type{<:Skip{P, TX}}) where {P, TX} = Base.IteratorEltype(TX)
-Base.eltype(::Type{Skip{P, TX}}) where {P, TX} = _try_reducing_type(eltype(TX), P)
+Base.eltype(::Type{Skip{P, TX}}) where {P, TX} = _try_reducing_type(_eltype(TX), P)
 
 Base.IndexStyle(::Type{<:Skip{P, TX}}) where {P, TX} = Base.IndexStyle(TX)
 Base.eachindex(s::Skip) = Iterators.filter(i -> !_pred(s)(@inbounds parent(s)[i]), eachindex(parent(s)))
