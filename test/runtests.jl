@@ -160,6 +160,14 @@ end
         @test @inferred(groupmap(isodd, only, [10, 11])) == Dict(false => 10, true => 11)
     end
 
+    @testset "iterators" begin
+        xs = (3x for x in [1, 2, 3, 4, 5])
+        g = @inferred group(isodd, xs)
+        @test g == Dict(false => [6, 12], true => [3, 9, 15])
+        @test isconcretetype(eltype(g))
+        @test eltype(g) <: Pair{Bool, <:SubArray{Int}}
+    end
+
     @testset "structarray" begin
         using StructArrays
 
@@ -372,7 +380,29 @@ end
 end
 
 @testitem "interactions" begin
-    
+    a = mapview(x -> x + 1, skip(isnan, [1, 2, NaN, 3]))
+    @test eltype(a) == Float64
+    @test @inferred(a[1]) == 2
+    @test_throws "is skipped" a[3]
+    @test @inferred(sum(a)) == 9
+
+    a = skip(isnan, mapview(x -> x + 1, [1, 2, NaN, 3]))
+    @test eltype(a) == Float64
+    @test @inferred(a[1]) == 2
+    @test_throws "is skipped" a[3]
+    @test @inferred(sum(a)) == 9
+
+    g = group(isodd, skip(isnothing, [1., 2, nothing, 3]))
+    @test g == Dict(false => [2], true => [1, 3])
+    @test g isa Dict{Bool, <:SubArray{Float64}}
+
+    g = group(isodd, skip(isnan, [1, 2, NaN, 3]))
+    @test g == Dict(false => [2], true => [1, 3])
+    @test g isa Dict{Bool, <:SubArray{Float64}}
+
+    g = groupfind(isodd, skip(isnan, [1, 2, NaN, 3]))
+    @test g == Dict(false => [2], true => [1, 4])
+    @test g isa Dict{Bool, <:SubArray{Int}}
 end
 
 
