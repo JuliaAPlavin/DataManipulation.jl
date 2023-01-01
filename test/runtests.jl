@@ -180,6 +180,12 @@ end
     @test materialize_views(group(isodd, 3 .* [1, 2, 3, 4, 5]; dicttype=Dict))::Dict{Bool, Vector{Int}} == Dict([true => [3, 9, 15], false => [6, 12]])
 end
 
+@testitem "collectview" begin
+    @test collectview([10, 20, 30])::Vector{Int} == [10, 20, 30]
+    @test collectview(view([10, 20, 30], [1, 2]))::SubArray{Int} == [10, 20]
+    @test collectview(group(isodd, 3 .* [1, 2, 3, 4, 5]))::Vector{<:SubArray{Int}} == [[3, 9, 15], [6, 12]]
+end
+
 
 # @testitem "(un)nest" begin
 #     @test @inferred(unnest((a=(x=1, y="2"), b=:z))) === (a_x=1, a_y="2", b=:z)

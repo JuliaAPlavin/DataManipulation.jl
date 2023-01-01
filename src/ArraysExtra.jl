@@ -16,7 +16,7 @@ export
     mapset, mapinsert, mapsetview, mapinsertview,
     filterview,
     sortview, uniqueview,
-    materialize_views
+    materialize_views, collectview
 
 
 include("symbols.jl")
