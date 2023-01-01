@@ -60,6 +60,16 @@ end
         @test Y == [((a=1,), 3), ((a=2,), 3), ((a=3,), 7), ((a=4,), 7)]
         @test Y isa StructArray
     end
+
+    @testset "flatten" begin
+        @test @inferred(flatten([1:1, 1:2, 1:3])) == [1, 1,2, 1,2,3]
+        out = Int[]
+        @test flatten!(out, [1:1, 1:2, 1:3]) === out == [1, 1,2, 1,2,3]
+
+        a = @inferred(flatten([StructVector(a=[1, 2]), StructVector(a=[1, 2, 3])]))::StructArray
+        @test a == [(a=1,), (a=2,), (a=1,), (a=2,), (a=3,)]
+        @test a.a == [1, 2, 1, 2, 3]
+    end
 end
 
 # @testset "mutate" begin

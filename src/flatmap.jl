@@ -33,3 +33,7 @@ end
 _similar_with_content(A::AbstractVector, ::Type{T}) where {T} = similar(A, T) .= A
 _similar_with_content(A::AbstractArray, ::Type{T}) where {T} = _similar_with_content(vec(A), T)
 _similar_with_content(A, ::Type{T}) where {T} = append!(T[], A)
+
+
+flatten(x) = flatmap(identity, x)
+flatten!(out, x) = flatmap!(identity, out, x)
