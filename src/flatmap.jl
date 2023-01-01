@@ -29,7 +29,8 @@ function flatmap(f::Function, a)
     arest = Iterators.rest(a, state)
     out = _similar_with_content(f(afirst), T)
     for x ∈ arest
-        append!(out, f(x))
+        _out = append!(out, f(x))
+        @assert _out === out  # e.g. AxisKeys may return something else from append!
     end
     return out
 end

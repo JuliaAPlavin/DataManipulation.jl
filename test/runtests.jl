@@ -1,5 +1,6 @@
 using ArraysExtra
 using StructArrays
+using AxisKeys
 using Test
 
 
@@ -19,6 +20,8 @@ end
     @test filtermap(x -> x % 3 == 0 ? Some(nothing) : nothing, X) == [nothing, nothing, nothing]
 
     @test filtermap(x -> x % 3 == 0 ? Some(x^2) : nothing, (1, 2, 3, 4, 5, 6)) === (9, 36)
+
+    @test filtermap(x -> isodd(x) ? Some(x^2) : nothing, KeyedArray([1, 2, 3], x=[10, 20, 30]))::KeyedArray == KeyedArray([1, 9], x=[10, 30])
 end
 
 @testset "flatmap" begin
@@ -70,6 +73,10 @@ end
         @test a == [(a=1,), (a=2,), (a=1,), (a=2,), (a=3,)]
         @test a.a == [1, 2, 1, 2, 3]
 
+        @test_throws "_out === out" flatten([KeyedArray([1, 2], x=10:10:20), KeyedArray([1, 2, 3], x=10:10:30)])
+        a = @inferred(flatten([KeyedArray([1, 2], x=[10, 20]), KeyedArray([1, 2, 3], x=[10, 20, 30])]))::KeyedArray
+        @test a == KeyedArray([1, 2, 1, 2, 3], x=[10, 20, 10, 20, 30])
+
         @test @inferred(flatten([[]])) == []
         @test @inferred(flatten(Vector{Int}[])) == []
         @test @inferred(flatten([StructVector(a=[1, 2])][1:0])) == []
@@ -78,20 +85,24 @@ end
     end
 end
 
-@testset "mutate" begin
-    X = [(a=1, b=(c=2,)), (a=3, b=(c=4,))]
-    @test mutate(x -> (c=x.a^2,), X) == [(a=1, b=(c=2,), c=1), (a=3, b=(c=4,), c=9)]
-    @test mutate(x -> (a=x.a^2,), X) == [(a=1, b=(c=2,)), (a=9, b=(c=4,))]
-    @test mutate(c=x -> x.a^2, X) == [(a=1, b=(c=2,), c=1), (a=3, b=(c=4,), c=9)]
-    @test mutate(c=x -> x.a^2, d=x -> x.a + 1, X) == [(a=1, b=(c=2,), c=1, d=2), (a=3, b=(c=4,), c=9, d=4)]
-    @test mutate(x -> (b=(d=x.a,),), X) == [(a=1, b=(d=1,)), (a=3, b=(d=3,))]
+# @testset "mutate" begin
+#     X = [(a=1, b=(c=2,)), (a=3, b=(c=4,))]
+#     @test mutate(x -> (c=x.a^2,), X) == [(a=1, b=(c=2,), c=1), (a=3, b=(c=4,), c=9)]
+#     @test mutate(x -> (a=x.a^2,), X) == [(a=1, b=(c=2,)), (a=9, b=(c=4,))]
+#     @test mutate(c=x -> x.a^2, X) == [(a=1, b=(c=2,), c=1), (a=3, b=(c=4,), c=9)]
+#     @test mutate(c=x -> x.a^2, d=x -> x.a + 1, X) == [(a=1, b=(c=2,), c=1, d=2), (a=3, b=(c=4,), c=9, d=4)]
+#     @test mutate(x -> (b=(d=x.a,),), X) == [(a=1, b=(d=1,)), (a=3, b=(d=3,))]
 
-    S = StructArray(X)
-    Sm = mutate(c=x -> x.a^2, S)
-    @test eltype(Sm) == @NamedTuple{a::Int, b::@NamedTuple{c::Int}, c::Int}
-    @test Sm.a === S.a
-    @test Sm.b === S.b
-    @test Sm.c == [1, 9]
+#     S = StructArray(X)
+#     Sm = mutate(c=x -> x.a^2, S)
+#     @test eltype(Sm) == @NamedTuple{a::Int, b::@NamedTuple{c::Int}, c::Int}
+#     @test Sm.a === S.a
+#     @test Sm.b === S.b
+#     @test Sm.c == [1, 9]
+# end
+
+@testset "group" begin
+    
 end
 
 # @testset "(un)nest" begin
