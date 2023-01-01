@@ -1,6 +1,7 @@
 sortview(A; kwargs...) = view(A, sortperm(A; kwargs...))
 
-uniqueview(A) = UniqueView(A, groupfind(identity, A) |> values |> collect)
+uniqueview(A) = uniqueview(identity, A)
+uniqueview(f::Function, A) = UniqueView(A, groupfind(f, A) |> values |> collect)
 
 struct UniqueView{T, TX <: AbstractArray{T}, TI} <: AbstractVector{T}
     parent::TX

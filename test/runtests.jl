@@ -530,6 +530,14 @@ end
     auv .= f.(auv)
     @test a == 10 .* a_orig
     @test auv == unique(a)
+
+    a = [1:5; 5:-1:1]
+    au = unique(isodd, a)
+    auv = @inferred(uniqueview(isodd, a))::AbstractVector{Int}
+    @test au == auv == [1, 2]
+    @test a[parentindices(auv)...] == auv
+    auv .= [0, 10]
+    @test a == [0, 10, 0, 10, 0, 0, 10, 0, 10, 0]
 end
 
 @testitem "sentinelview" begin
