@@ -98,6 +98,7 @@ end
 end
 
 @testitem "mutate" begin
+    using ArraysExtra: MappedArray
     using StructArrays
 
     X = [(a=1, b=(c=2,)), (a=3, b=(c=4,))]
@@ -107,12 +108,22 @@ end
     @test mutate(c=x -> x.a^2, d=x -> x.a + 1, X) == [(a=1, b=(c=2,), c=1, d=2), (a=3, b=(c=4,), c=9, d=4)]
     @test mutate(x -> (b=(d=x.a,),), X) == [(a=1, b=(d=1,)), (a=3, b=(d=3,))]
 
+    Y = mutateview(c=x -> x.a^2, X)
+    @test Y == [(a=1, b=(c=2,), c=1), (a=3, b=(c=4,), c=9)]
+    @test @inferred(Y[1]) == (a=1, b=(c=2,), c=1)
+
     S = StructArray(X)
     Sm = mutate(c=x -> x.a^2, S)
     @test eltype(Sm) == @NamedTuple{a::Int, b::@NamedTuple{c::Int}, c::Int}
     @test Sm.a === S.a
     @test Sm.b === S.b
     @test Sm.c == [1, 9]
+
+    Sm = mutateview(c=x -> x.a^2, S)
+    @test eltype(Sm) == @NamedTuple{a::Int, b::@NamedTuple{c::Int}, c::Int}
+    @test Sm.a === S.a
+    @test Sm.b === S.b
+    @test Sm.c::MappedArray == [1, 9]
 end
 
 @testitem "group" begin

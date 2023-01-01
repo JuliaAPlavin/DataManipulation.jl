@@ -8,7 +8,7 @@ export
     @S_str,
     filtermap,
     flatmap, flatmap!, flatten, flatten!,
-    mutate,
+    mutate, mutateview,
     group, groupfind, groupview, groupmap,
     filterview,
     skip, skipnan,
