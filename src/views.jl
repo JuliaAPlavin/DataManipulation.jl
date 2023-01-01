@@ -2,8 +2,8 @@
 
 Materialize views arbitrarily nested in dictionaries and `StructArray`s. """
 materialize_views(A::AbstractArray) = map(materialize_views, A)
-materialize_views(A::Dictionary) = map(materialize_views, A)
-materialize_views(A::Dict) = FlexiGroups.mapvalues(materialize_views, A)
+materialize_views(A::AbstractDictionary) = map(materialize_views, A)
+materialize_views(A::AbstractDict) = FlexiGroups.mapvalues(materialize_views, A)
 materialize_views(A::StructArray) = StructArray(map(materialize_views, StructArrays.components(A)))
 materialize_views(A) = A
 
@@ -12,4 +12,4 @@ materialize_views(A) = A
 Turn the input into an `AbstractArray`, like `collect` but doesn't copy.
 Mostly useful for general handling of arrays and dictionaries. """
 collectview(A::AbstractArray) = A
-collectview(A::Dictionary) = A.values
+collectview(A::Union{Dictionary,ArrayDictionary}) = A.values

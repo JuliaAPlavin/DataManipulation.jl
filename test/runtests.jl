@@ -168,7 +168,7 @@ end
 end
 
 @testitem "materialize_views" begin
-    using Dictionaries: dictionary, Dictionary
+    using Dictionaries: dictionary, Dictionary, AbstractDictionary
 
     @test materialize_views([10, 20, 30])::Vector{Int} == [10, 20, 30]
     @test materialize_views(view([10, 20, 30], [1, 2]))::Vector{Int} == [10, 20]
@@ -176,7 +176,7 @@ end
     @test materialize_views(mapview(x -> 10x, [1, 2, 3]))::Vector{Int} == [10, 20, 30]
     @test materialize_views(skip(isnan, [10, 20, NaN]))::Vector{Float64} == [10, 20]
     @test materialize_views(sentinelview([10, 20, 30], [1, nothing, 3], nothing))::Vector{Union{Int, Nothing}} == [10, nothing, 30]
-    @test materialize_views(group(isodd, 3 .* [1, 2, 3, 4, 5]))::Dictionary{Bool, Vector{Int}} == dictionary([true => [3, 9, 15], false => [6, 12]])
+    @test materialize_views(group(isodd, 3 .* [1, 2, 3, 4, 5]))::AbstractDictionary{Bool, Vector{Int}} == dictionary([true => [3, 9, 15], false => [6, 12]])
     @test materialize_views(group(isodd, 3 .* [1, 2, 3, 4, 5]; restype=Dict))::Dict{Bool, Vector{Int}} == Dict([true => [3, 9, 15], false => [6, 12]])
 end
 
