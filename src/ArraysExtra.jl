@@ -30,7 +30,7 @@ include("discreterange.jl")
 
 # some interactions: include type piracy, but this cannot be put in upstream packages
 materialize_views(s::Skipper.Skip) = collect(s)
-Base.getproperty(A::Skipper.Skip, p::Symbol) = mapview(Accessors.PropertyLens(p), A)
-Base.getproperty(A::Skipper.Skip, p) = mapview(Accessors.PropertyLens(p), A)
+Base.getproperty(A::Skipper.Skip, p::Symbol) = mapview(FlexiMaps.Accessors.PropertyLens(p), A)
+Base.getproperty(A::Skipper.Skip, p) = mapview(FlexiMaps.Accessors.PropertyLens(p), A)
 
 end
