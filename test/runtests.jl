@@ -291,6 +291,9 @@ end
         @test ma == [21, 31, 11, 101]
 
 
+        ma = @inferred mapview(x -> (; x=x + 1), a)
+        @test ma.x::MappedArray{Int} == [21, 31, 11, 101]
+        @test parent(ma.x) === parent(ma) === a
     end
 
     @testset "dict" begin

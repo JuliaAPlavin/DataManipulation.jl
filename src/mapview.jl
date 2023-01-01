@@ -1,8 +1,3 @@
-mapview(f, X::AbstractArray{T, N}) where {T, N} = MappedArray{Core.Compiler.return_type(f, Tuple{T}), N}(f, X)
-mapview(f, X::Dict{K, V}) where {K, V} = MappedDict{K, Core.Compiler.return_type(f, Tuple{V})}(f, X)
-mapview(f, X) = MappedAny(f, X)
-
-
 struct MappedArray{T, N, F, TX <: AbstractArray{<:Any, N}} <: AbstractArray{T, N}
     f::F
     parent::TX
@@ -105,6 +100,8 @@ for type in (
     @eval Base.similar(A::_MTT, T::Type, dims::$(type)) = similar(parent(A), T, dims)
 end
 
+Base.getproperty(A::_MTT, p::Symbol) = mapview(Accessors.PropertyLens(p), A)
+Base.getproperty(A::_MTT, p) = mapview(Accessors.PropertyLens(p), A)
 
 
 function Base.:(==)(A::Union{AbstractArray, MappedAny}, B::Union{AbstractArray, MappedAny})
@@ -122,3 +119,9 @@ function Base.:(==)(A::Union{AbstractArray, MappedAny}, B::Union{AbstractArray, 
     end
     return anymissing ? missing : true
 end
+
+
+mapview(f, X::AbstractArray{T, N}) where {T, N} = MappedArray{Core.Compiler.return_type(f, Tuple{T}), N}(f, X)
+mapview(f, X::Dict{K, V}) where {K, V} = MappedDict{K, Core.Compiler.return_type(f, Tuple{V})}(f, X)
+mapview(f, X) = MappedAny(f, X)
+mapview(f, X::_MTT) = mapview(f ∘ _f(X), parent(X))
