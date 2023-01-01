@@ -1,15 +1,15 @@
 """    mapset(X; prop=f, ...)
 
-Set values of `x.prop` to `f(x)` for all elements. Common usage is for modifying table columns.
+Set values of `x.prop` to `f(x)` for all `x` elements of `X`. Common usage is for modifying table columns.
 
 Equivalent to `map(x -> @set(x.prop = f(x)), X)`, but supports multiple properties.
 
 When `X` is a `StructArray`: uses an optimized approach, keeping all other component untouched. """
 mapset(A; kwargs...) = _mapmerge(A, map, _merge_set; kwargs...)
 
-"""    mapview(X; prop=f, ...)
+"""    mapinsert(X; prop=f, ...)
 
-Insert `x.prop` into each element with the value `f(x)`. Common usage is for adding table columns.
+Insert `x.prop` with the value `f(x)` into all `x` elements of `X`. Common usage is for adding table columns.
 
 Equivalent to `map(x -> @insert(x.prop = f(x)), X)`, but supports multiple properties.
 
