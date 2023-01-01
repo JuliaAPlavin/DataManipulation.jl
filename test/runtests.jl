@@ -78,6 +78,11 @@ end
         @test Y isa StructArray
     end
 
+    using Accessors
+    @testset "flatmap⁻" begin
+        ArraysExtra.flatmap⁻(@optic(_.vals), (x, v) -> (;x..., v), [(a=1, vals=[2, 3]), (a=4, vals=[5])]) == [(a=1, v=2), (a=1, v=3), (a=4, v=5)]
+    end
+
     @testset "flatten" begin
         @test @inferred(flatten([1:1, 1:2, 1:3])) == [1, 1,2, 1,2,3]
         out = Int[]
