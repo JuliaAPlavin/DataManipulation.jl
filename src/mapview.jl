@@ -6,12 +6,12 @@ MappedArray{T, N}(f, X) where {T, N} = MappedArray{T, N, typeof(f), typeof(X)}(f
 parent_type(::Type{<:MappedArray{T, N, F, TX}}) where {T, N, F, TX} = TX
 
 Base.@propagate_inbounds Base.getindex(A::MappedArray, I...) = _getindex(A, to_indices(A, I))
-Base.@propagate_inbounds _getindex(A, I::Tuple{Vararg{Integer}}) = _f(A)(parent(A)[I...])
-Base.@propagate_inbounds _getindex(A, I::Tuple) = typeof(A)(_f(A), parent(A)[I...])
+Base.@propagate_inbounds _getindex(A::MappedArray, I::Tuple{Vararg{Integer}}) = _f(A)(parent(A)[I...])
+Base.@propagate_inbounds _getindex(A::MappedArray, I::Tuple) = typeof(A)(_f(A), parent(A)[I...])
 
 Base.@propagate_inbounds Base.setindex!(A::MappedArray, v, I...) = _setindex!(A, v, to_indices(A, I))
-Base.@propagate_inbounds _setindex!(A, v, I::Tuple{Vararg{Integer}}) = (parent(A)[I...] = set(parent(A)[I...], _f(A), v); A)
-Base.@propagate_inbounds _setindex!(A, v, I::Tuple) = (parent(A)[I...] = set.(parent(A)[I...], Ref(_f(A)), v); A)
+Base.@propagate_inbounds _setindex!(A::MappedArray, v, I::Tuple{Vararg{Integer}}) = (parent(A)[I...] = set(parent(A)[I...], _f(A), v); A)
+Base.@propagate_inbounds _setindex!(A::MappedArray, v, I::Tuple) = (parent(A)[I...] = set.(parent(A)[I...], Ref(_f(A)), v); A)
 
 Base.append!(A::MappedArray, iter) = (append!(parent(A), map(inverse(_f(A)), iter)); A)
 

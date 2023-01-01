@@ -13,7 +13,8 @@ export
     filterview,
     skip, skipnan,
     mapview, maprange,
-    findonly
+    findonly,
+    sortview, uniqueview
 
 
 include("symbols.jl")
@@ -24,6 +25,7 @@ include("group.jl")
 include("filterview.jl")
 include("skip.jl")
 include("mapview.jl")
+include("uniqueview.jl")
 
 
 function findonly(pred, A)

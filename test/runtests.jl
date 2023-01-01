@@ -495,6 +495,37 @@ end
     @test g isa Dict{Bool, <:SubArray{Int}}
 end
 
+@testitem "sortview" begin
+    a = [1:5; 5:-1:1]
+    as = @inferred sortview(a)
+    @test as == [1, 1, 2, 2, 3, 3, 4, 4, 5, 5]
+    as[4] = 0
+    @test a == [1, 2, 3, 4, 5, 5, 4, 3, 0, 1]
+end
+
+@testitem "uniqueview" begin
+    a = [1:5; 5:-1:1]
+    a_orig = copy(a)
+    
+    auv = @inferred(uniqueview(a))::AbstractVector{Int}
+    @test a[parentindices(auv)...] == auv
+    @test auv[ArraysExtra.inverseindices(auv)] == a
+
+    au = unique(a)
+    auv = @inferred(uniqueview(a))::AbstractVector{Int} |> sortview  # XXX: should return in original order
+    @test auv == au == 1:5
+
+    auv[1] = 0
+    @test a == [0; 2:5; 5:-1:2; 0]
+    a .= a_orig
+    
+    cnt = Ref(0)
+    f(x) = (cnt[] += 1; x * 10)
+    auv .= f.(auv)
+    @test a == 10 .* a_orig
+    @test sort(auv) == unique(a)
+end
+
 
 # @testitem "(un)nest" begin
 #     @test @inferred(unnest((a=(x=1, y="2"), b=:z))) === (a_x=1, a_y="2", b=:z)
