@@ -3,6 +3,7 @@ module DataManipulation
 using StructArrays
 using Dictionaries
 using InverseFunctions
+using Accessors
 using Reexport
 @reexport using DataPipes
 @reexport using Skipper
@@ -13,7 +14,7 @@ using Reexport
 export
     @S_str,
     findonly, filterfirst, filteronly, uniqueonly,
-    mapset, mapinsert, mapsetview, mapinsertview,
+    mapset, mapinsert, mapinsert⁻, mapsetview, mapinsertview,
     filterview,
     sortview, uniqueview,
     materialize_views, collectview

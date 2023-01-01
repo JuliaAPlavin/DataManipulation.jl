@@ -43,3 +43,25 @@ _merge_set(a::NamedTuple{KSA}, b::NamedTuple{KSB}) where {KSA, KSB} = (@assert K
 _merge_insert(a::NamedTuple{KSA}, b::NamedTuple{KSB}) where {KSA, KSB} = (@assert isdisjoint(KSB, KSA); merge(a, b))
 _merge_set(a, b) = merge(a, b)
 _merge_insert(a, b) = merge(a, b)
+
+function mapinsert⁻(A; kwargs...)
+    deloptics = map(values(kwargs)) do o
+        Accessors.deopcompose(o) |> first
+    end
+    @p map(A) do __
+        _merge_insert(__, map(fx -> fx(__), values(kwargs)))
+        reduce((acc, o) -> delete(acc, o), deloptics; init=__)
+    end
+end
+
+function mapinsert⁻(A::StructArray; kwargs...)
+    deloptics = map(values(kwargs)) do o
+        Accessors.deopcompose(o) |> first
+    end
+    @p let
+        StructArrays.components(A)
+        _merge_insert(__, map(fx -> map(fx, A), values(kwargs)))
+        reduce((acc, o) -> delete(acc, o), deloptics; init=__)
+        StructArray()
+    end
+end

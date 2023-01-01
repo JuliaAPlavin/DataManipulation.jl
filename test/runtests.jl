@@ -30,12 +30,16 @@ end
 @testitem "mapset" begin
     using DataManipulation: mapset, mapinsert, mapsetview, mapinsertview
     using StructArrays
+    using Accessors
 
     xs = [(a=1, b=2), (a=3, b=4)]
     @test @inferred(mapset(a=x -> x.b^2, xs)) == [(a=4, b=2), (a=16, b=4)]
     @test @inferred(mapset(a=x -> x.b^2, b=x -> x.a, xs)) == [(a=4, b=1), (a=16, b=3)]
     @test @inferred(mapinsert(c=x -> x.b^2, xs)) == [(a=1, b=2, c=4), (a=3, b=4, c=16)]
     @test @inferred(mapinsert(c=x -> x.b^2, d=x -> x.a + x.b, xs)) == [(a=1, b=2, c=4, d=3), (a=3, b=4, c=16, d=7)]
+
+    @test mapinsert⁻(c=@optic(_.b^2), xs) == [(a=1, c=4), (a=3, c=16)]
+    @test mapinsert⁻(c=@optic(_.b^2), d=@optic(_.b), xs) == [(a=1, c=4, d=2), (a=3, c=16, d=4)]
 
     @test @inferred(mapsetview(a=x -> x.b^2, xs)) == [(a=4, b=2), (a=16, b=4)]
     @test @inferred(mapsetview(a=x -> x.b^2, b=x -> x.a, xs)) == [(a=4, b=1), (a=16, b=3)]
@@ -48,6 +52,9 @@ end
     @test sm.b === sa.b
     sm = @inferred(mapinsert(c=x -> x.b^2, sa))
     @test sm.b === sa.b
+    @test sm.c == [4, 16]
+    sm = @inferred mapinsert⁻(c=@optic(_.b^2), sa)
+    @test sm.a === sa.a
     @test sm.c == [4, 16]
 end
 
