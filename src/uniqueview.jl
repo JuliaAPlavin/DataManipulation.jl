@@ -7,8 +7,6 @@ struct UniqueView{T, TX <: AbstractArray{T}, TI} <: AbstractVector{T}
     parent::TX
     groupedindices::TI
 end
-UniqueView{T}(parent, groupedindices) where {T} = UniqueView{T, typeof(parent), typeof(groupedindices)}(parent, groupedindices)
-UniqueView(parent, groupedindices) = UniqueView{eltype(parent), typeof(parent), typeof(groupedindices)}(parent, groupedindices)
 
 Base.size(A::UniqueView) = size(A.groupedindices)
 # Base.keys(A::UniqueView) = keys(parent(A))
