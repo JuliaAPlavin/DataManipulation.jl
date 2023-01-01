@@ -57,6 +57,8 @@ end
 end
 
 @testitem "filterview" begin
+    using Dictionaries: dictionary
+
     a = [1, 2, 3]
     fv = @inferred(filterview(x -> x >= 2, a))
     @test fv == [2, 3]
@@ -71,6 +73,16 @@ end
     @test !isempty(fv)
     @test fv[2] == :b
     @test_throws "key 1 not found" fv[1]
+    @test collect(keys(fv)) == [2, 3]
+    @test collect(values(fv)) == [:b, :c]
+
+    a = dictionary([1 => :a, 2 => :b, 3 => :c])
+    fv = @inferred filterview(v -> v ∈ (:b, :c), a)
+    @test fv == dictionary([2 => :b, 3 => :c])
+    @test length(fv) == 2
+    @test !isempty(fv)
+    @test fv[2] == :b
+    @test_throws "does not contain index: 1" fv[1]
     @test collect(keys(fv)) == [2, 3]
     @test collect(values(fv)) == [:b, :c]
 end

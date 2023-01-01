@@ -1,5 +1,6 @@
 filterview(f, X::AbstractArray) = @view X[findall(f, X)]
 filterview(f, X::AbstractDict) = FilteredDict(f, X)
+filterview(f, X::AbstractDictionary) = Dictionaries.filterview(f, X)
 
 
 struct FilteredDict{K, V, D <: AbstractDict{K, V}, P} <: AbstractDict{K, V}
