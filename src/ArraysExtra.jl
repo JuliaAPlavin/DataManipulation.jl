@@ -3,6 +3,7 @@ module ArraysExtra
 using Accessors
 using InverseFunctions
 using StructArrays
+using Dictionaries
 
 export
     @S_str,

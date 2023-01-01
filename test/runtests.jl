@@ -127,56 +127,63 @@ end
 end
 
 @testitem "group" begin
+    using Dictionaries
+
     @testset "basic" begin
         xs = 3 .* [1, 2, 3, 4, 5]
         g = @inferred group(isodd, xs)
-        @test g == Dict(false => [6, 12], true => [3, 9, 15])
+        @test g == dictionary([true => [3, 9, 15], false => [6, 12]])
         @test isconcretetype(eltype(g))
-        @test eltype(g) <: Pair{Bool, <:SubArray{Int}}
+        @test valtype(g) <: SubArray{Int}
 
         # ensure we get a copy
         xs[1] = 123
-        @test g == Dict(false => [6, 12], true => [3, 9, 15])
+        @test g == dictionary([true => [3, 9, 15], false => [6, 12]])
 
 
         xs = 3 .* [1, 2, 3, 4, 5]
         g = @inferred groupview(isodd, xs)
-        @test g == Dict(false => [6, 12], true => [3, 9, 15])
+        @test g == dictionary([true => [3, 9, 15], false => [6, 12]])
         @test isconcretetype(eltype(g))
-        @test eltype(g) <: Pair{Bool, <:SubArray{Int}}
+        @test valtype(g) <: SubArray{Int}
 
         # ensure we get a view
         xs[1] = 123
-        @test g == Dict(false => [6, 12], true => [123, 9, 15])
+        @test g == dictionary([true => [123, 9, 15], false => [6, 12]])
 
 
         xs = 3 .* [1, 2, 3, 4, 5]
         g = @inferred groupfind(isodd, xs)
-        @test g == Dict(false => [2, 4], true => [1, 3, 5])
+        @test g == dictionary([true => [1, 3, 5], false => [2, 4]])
         @test isconcretetype(eltype(g))
-        @test eltype(g) <: Pair{Bool, <:SubArray{Int}}
+        @test valtype(g) <: SubArray{Int}
 
 
         g = @inferred(group(isnothing, [1, 2, 3, nothing, 4, 5, nothing]))
-        @test g == Dict(false => [1, 2, 3, 4, 5], true => [nothing, nothing])
-        @test eltype(g) <: Pair{Bool, <:SubArray{Union{Nothing, Int}}}
+        @test g == dictionary([false => [1, 2, 3, 4, 5], true => [nothing, nothing]])
+        @test valtype(g) <: SubArray{Union{Nothing, Int}}
     end
 
     @testset "groupmap" begin
         xs = 3 .* [1, 2, 3, 4, 5]
-        @test @inferred(groupmap(isodd, length, xs)) == Dict(false => 2, true => 3)
-        @test @inferred(groupmap(isodd, first, xs)) == Dict(false => 6, true => 3)
-        @test @inferred(groupmap(isodd, last, xs)) == Dict(false => 12, true => 15)
+        @test @inferred(groupmap(isodd, length, xs)) == dictionary([true => 3, false => 2])
+        @test @inferred(groupmap(isodd, first, xs)) == dictionary([true => 3, false => 6])
+        @test @inferred(groupmap(isodd, last, xs)) == dictionary([true => 15, false => 12])
         @test_throws "exactly one element" groupmap(isodd, only, xs)
-        @test @inferred(groupmap(isodd, only, [10, 11])) == Dict(false => 10, true => 11)
+        @test @inferred(groupmap(isodd, only, [10, 11])) == dictionary([false => 10, true => 11])
     end
 
     @testset "iterators" begin
         xs = (3x for x in [1, 2, 3, 4, 5])
         g = @inferred group(isodd, xs)
-        @test g == Dict(false => [6, 12], true => [3, 9, 15])
+        @test g == dictionary([true => [3, 9, 15], false => [6, 12]])
         @test isconcretetype(eltype(g))
-        @test eltype(g) <: Pair{Bool, <:SubArray{Int}}
+        @test valtype(g) <: SubArray{Int}
+    end
+
+    @testset "dicttype = $D" for D in [Dict, Dictionary, UnorderedDictionary, ArrayDictionary]
+        @test group(isodd, 3 .* [1, 2, 3, 4, 5]; dicttype=D) |> pairs |> Dict == Dict(false => [6, 12], true => [3, 9, 15])
+        @test group(isodd, (3x for x in [1, 2, 3, 4, 5]); dicttype=D) |> pairs |> Dict == Dict(false => [6, 12], true => [3, 9, 15])
     end
 
     @testset "structarray" begin
@@ -184,12 +191,12 @@ end
 
         xs = StructArray(a=3 .* [1, 2, 3, 4, 5])
         g = @inferred group(x -> isodd(x.a), xs)
-        @test g == Dict(false => [(a=6,), (a=12,)], true => [(a=3,), (a=9,), (a=15,)])
+        @test g == dictionary([true => [(a=3,), (a=9,), (a=15,)], false => [(a=6,), (a=12,)]])
         @test isconcretetype(eltype(g))
         @test g[false].a == [6, 12]
 
         g = @inferred groupview(x -> isodd(x.a), xs)
-        @test g == Dict(false => [(a=6,), (a=12,)], true => [(a=3,), (a=9,), (a=15,)])
+        @test g == dictionary([true => [(a=3,), (a=9,), (a=15,)], false => [(a=6,), (a=12,)]])
         @test isconcretetype(eltype(g))
         @test g[false].a == [6, 12]
     end
@@ -199,13 +206,13 @@ end
 
         xs = KeyedArray(1:5, a=3 .* [1, 2, 3, 4, 5])
         g = @inferred group(isodd, xs)
-        @test g == Dict(false => [2, 4], true => [1, 3, 5])
+        @test g == dictionary([true => [1, 3, 5], false => [2, 4]])
         @test isconcretetype(eltype(g))
         @test_broken axiskeys(g[false]) == ([6, 12],)
         @test_broken g[false](a=6) == 2
 
         g = @inferred groupview(isodd, xs)
-        @test g == Dict(false => [2, 4], true => [1, 3, 5])
+        @test g == dictionary([true => [1, 3, 5], false => [2, 4]])
         @test isconcretetype(eltype(g))
         @test axiskeys(g[false]) == ([6, 12],)
         @test g[false](a=6) == 2
@@ -216,12 +223,12 @@ end
 
         xs = Table(a=3 .* [1, 2, 3, 4, 5])
         g = @inferred group(x -> isodd(x.a), xs)
-        @test g == Dict(false => [(a=6,), (a=12,)], true => [(a=3,), (a=9,), (a=15,)])
+        @test g == dictionary([true => [(a=3,), (a=9,), (a=15,)], false => [(a=6,), (a=12,)]])
         @test isconcretetype(eltype(g))
         @test g[false].a == [6, 12]
 
         g = @inferred groupview(x -> isodd(x.a), xs)
-        @test g == Dict(false => [(a=6,), (a=12,)], true => [(a=3,), (a=9,), (a=15,)])
+        @test g == dictionary([true => [(a=3,), (a=9,), (a=15,)], false => [(a=6,), (a=12,)]])
         @test isconcretetype(eltype(g))
         @test g[false].a == [6, 12]
     end
@@ -233,17 +240,17 @@ end
 
         xs = dictionary(3 .* [1, 2, 3, 4, 5] .=> 1:5)
         g = @inferred group(isodd, xs)
-        @test g == Dict(false => [2, 4], true => [1, 3, 5])
+        @test g == dictionary([true => [1, 3, 5], false => [2, 4]])
         @test isconcretetype(eltype(g))
         @test g[false] == [2, 4]
 
         # view(dct, range) doesn't work for dictionaries
         # g = @inferred groupview(isodd, xs)
-        # @test g == Dict(false => [2, 4], true => [1, 3, 5])
+        # @test g == dictionary([true => [1, 3, 5], false => [2, 4]])
         # @test isconcretetype(eltype(g))
         # @test g[false] == [2, 4]
         # xs[6] = 123
-        # @test g == Dict(false => [123, 4], true => [1, 3, 5])
+        # @test g == dictionary([false => [123, 4], true => [1, 3, 5]])
     end
 end
 
@@ -470,6 +477,8 @@ end
 end
 
 @testitem "interactions" begin
+    using Dictionaries
+
     a = mapview(x -> x + 1, skip(isnan, [1, 2, NaN, 3]))
     @test eltype(a) == Float64
     @test @inferred(a[1]) == 2
@@ -483,16 +492,16 @@ end
     @test @inferred(sum(a)) == 9
 
     g = group(isodd, skip(isnothing, [1., 2, nothing, 3]))
-    @test g == Dict(false => [2], true => [1, 3])
-    @test g isa Dict{Bool, <:SubArray{Float64}}
+    @test g == dictionary([true => [1, 3], false => [2]])
+    @test g isa Dictionary{Bool, <:SubArray{Float64}}
 
     g = group(isodd, skip(isnan, [1, 2, NaN, 3]))
-    @test g == Dict(false => [2], true => [1, 3])
-    @test g isa Dict{Bool, <:SubArray{Float64}}
+    @test g == dictionary([true => [1, 3], false => [2]])
+    @test g isa Dictionary{Bool, <:SubArray{Float64}}
 
     g = groupfind(isodd, skip(isnan, [1, 2, NaN, 3]))
-    @test g == Dict(false => [2], true => [1, 4])
-    @test g isa Dict{Bool, <:SubArray{Int}}
+    @test g == dictionary([true => [1, 4], false => [2]])
+    @test g isa Dictionary{Bool, <:SubArray{Int}}
 end
 
 @testitem "sortview" begin
@@ -506,14 +515,12 @@ end
 @testitem "uniqueview" begin
     a = [1:5; 5:-1:1]
     a_orig = copy(a)
-    
-    auv = @inferred(uniqueview(a))::AbstractVector{Int}
-    @test a[parentindices(auv)...] == auv
-    @test auv[ArraysExtra.inverseindices(auv)] == a
 
     au = unique(a)
-    auv = @inferred(uniqueview(a))::AbstractVector{Int} |> sortview  # XXX: should return in original order
+    auv = @inferred(uniqueview(a))::AbstractVector{Int}
     @test auv == au == 1:5
+    @test a[parentindices(auv)...] == auv
+    @test auv[ArraysExtra.inverseindices(auv)] == a
 
     auv[1] = 0
     @test a == [0; 2:5; 5:-1:2; 0]
@@ -523,7 +530,7 @@ end
     f(x) = (cnt[] += 1; x * 10)
     auv .= f.(auv)
     @test a == 10 .* a_orig
-    @test sort(auv) == unique(a)
+    @test auv == unique(a)
 end
 
 
