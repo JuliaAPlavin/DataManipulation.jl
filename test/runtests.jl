@@ -345,6 +345,15 @@ end
             @test searchsortedlast(ma, 20) == 4
             @test searchsortedfirst(reverse(ma), 20; rev=true) == 3
             @test searchsortedlast(reverse(ma), 20; rev=true) == 5
+
+            ma = mapview(x -> x * 10, [1, 2, 2, 2, 3, 4])
+            @test findfirst(==(30), ma) == 5
+            @test findfirst(==(35), ma) |> isnothing
+            @test searchsortedfirst(ma, 20) == 2
+            @test searchsortedlast(ma, 20) == 4
+            @test searchsortedfirst(reverse(ma), 20; rev=true) == 3
+            @test searchsortedlast(reverse(ma), 20; rev=true) == 5
+
             ma = mapview(@optic(_ * -10), .- [1, 2, 2, 2, 3, 4])
             @test findfirst(==(30), ma) == 5
             @test findfirst(==(35), ma) |> isnothing
@@ -459,6 +468,11 @@ end
 #     @test reduce(vcat_data, Dict("X" => X, "Y" => Y); source=@optic(_.src)) |> sort == [(a=1, b=2, src="X"), (a=2, b=3, src="X"), (a=2, b=1, src="Y")] |> sort
 # end
 
+@testitem "_" begin
+    import Aqua
+    Aqua.test_all(ArraysExtra; ambiguities=false)
+    Aqua.test_ambiguities(ArraysExtra)
 
-import CompatHelperLocal as CHL
-CHL.@check()
+    import CompatHelperLocal as CHL
+    CHL.@check()
+end

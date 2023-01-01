@@ -87,13 +87,14 @@ Base.keys(A::_MTT) = keys(parent(A))
 Base.values(A::_MTT) = mapview(_f(A), values(parent(A)))
 Base.keytype(A::_MTT) = keytype(parent(A))
 Base.valtype(A::_MTT) = eltype(A)
-Base.reverse(A::_MTT, args...; kwargs...) = mapview(_f(A), reverse(parent(A), args...; kwargs...))
+Base.reverse(A::_MTT; kwargs...) = mapview(_f(A), reverse(parent(A); kwargs...))
 
 for type in (
         :Dims,
         # mimic OffsetArrays signature
         :(Tuple{Union{Integer, AbstractUnitRange}, Vararg{Union{Integer, AbstractUnitRange}}}),
         # disambiguation with Base
+        :(Tuple{Integer, Vararg{Integer}}),
         :(Tuple{Union{Integer, Base.OneTo}, Vararg{Union{Integer, Base.OneTo}}}),
     )
     @eval Base.similar(::Type{MT}, dims::$(type)) where {MT <: _MTT} = similar(parent_type(MT), dims)
@@ -128,15 +129,15 @@ mapview(f, X::_MTT) = mapview(f ∘ _f(X), parent(X))
 
 
 Base.findfirst(pred::Function, A::MappedArray) = _findfirst(pred, A, inverse(_f(A)))
-_findfirst(pred, A, ::NoInverse) = Base.@invoke findfirst(pred, A::AbstractArray)
-_findfirst(pred::Union{Base.Fix2{typeof(isequal)}, Base.Fix2{typeof(==)}}, A::_MTT, invf) = findfirst(pred.f(invf(pred.x)), parent(A))
+_findfirst(pred, A, ::NoInverse) = Base.@invoke findfirst(pred::typeof(pred), A::AbstractArray)
+_findfirst(pred::Union{Base.Fix2{typeof(isequal)}, Base.Fix2{typeof(==)}}, A, invf::Function) = findfirst(pred.f(invf(pred.x)), parent(A))
 
-Base.searchsortedfirst(A::MappedArray, v; kwargs...) = _searchsortedfirst(A, v, inverse(_f(A)); kwargs...)
-_searchsortedfirst(A, v, ::NoInverse; kwargs...) = Base.@invoke searchsortedfirst(A::AbstractArray, v; kwargs...)
-_searchsortedfirst(A, v, invf; rev=false) = searchsortedfirst(parent(A), invf(v); rev=_is_increasing(_f(A)) ? rev : !rev)
-Base.searchsortedlast(A::MappedArray, v; kwargs...) = _searchsortedlast(A, v, inverse(_f(A)); kwargs...)
-_searchsortedlast(A, v, ::NoInverse; kwargs...) = Base.@invoke searchsortedlast(A::AbstractArray, v; kwargs...)
-_searchsortedlast(A, v, invf; rev=false) = searchsortedlast(parent(A), invf(v); rev=_is_increasing(_f(A)) ? rev : !rev)
+Base.searchsortedfirst(A::MappedArray{<:Any, 1}, v; kwargs...) = _searchsortedfirst(A, v, inverse(_f(A)); kwargs...)
+_searchsortedfirst(A, v, ::NoInverse; kwargs...) = Base.@invoke searchsortedfirst(A::AbstractVector, v::typeof(v); kwargs...)
+_searchsortedfirst(A, v, invf::Function; rev=false) = searchsortedfirst(parent(A), invf(v); rev=_is_increasing(_f(A)) ? rev : !rev)
+Base.searchsortedlast(A::MappedArray{<:Any, 1}, v; kwargs...) = _searchsortedlast(A, v, inverse(_f(A)); kwargs...)
+_searchsortedlast(A, v, ::NoInverse; kwargs...) = Base.@invoke searchsortedlast(A::AbstractVector, v::typeof(v); kwargs...)
+_searchsortedlast(A, v, invf::Function; rev=false) = searchsortedlast(parent(A), invf(v); rev=_is_increasing(_f(A)) ? rev : !rev)
 
 # Base.findall(interval_d::Base.Fix2{typeof(in), <:Interval}, x::AbstractRange) =
 #     searchsorted_interval(x, interval_d.x; rev=step(x) < zero(step(x)))
