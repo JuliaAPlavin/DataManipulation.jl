@@ -125,3 +125,8 @@ mapview(f, X::AbstractArray{T, N}) where {T, N} = MappedArray{Core.Compiler.retu
 mapview(f, X::Dict{K, V}) where {K, V} = MappedDict{K, Core.Compiler.return_type(f, Tuple{V})}(f, X)
 mapview(f, X) = MappedAny(f, X)
 mapview(f, X::_MTT) = mapview(f ∘ _f(X), parent(X))
+
+
+Base.findfirst(pred, A::MappedArray) = _findfirst(pred, A, inverse(_f(A)))
+_findfirst(pred, A, ::NoInverse) = Base.@invoke findfirst(pred, A::AbstractArray)
+_findfirst(pred::Union{Base.Fix2{typeof(isequal)}, Base.Fix2{typeof(==)}}, A::_MTT, invf) = findfirst(f.f(invf(f.x)), parent(A))
