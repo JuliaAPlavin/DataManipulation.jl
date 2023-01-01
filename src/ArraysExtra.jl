@@ -1,6 +1,6 @@
 module ArraysExtra
 
-using AccessorsExtra
+using Accessors
 using InverseFunctions
 using StructArrays
 

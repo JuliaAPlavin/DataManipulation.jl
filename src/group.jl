@@ -1,13 +1,13 @@
 function groupfind(f, X)
     (; dct, starts, rperm) = _group_core(f, X, keys(X))
-    @modify(dct |> Values()) do gid
+    mapvalues(dct) do gid
         @view rperm[starts[gid + 1]:-1:1 + starts[gid]]
     end
 end
 
 function groupview(f, X)
     (; dct, starts, rperm) = _group_core(f, X, keys(X))
-    @modify(dct |> Values()) do gid
+    mapvalues(dct) do gid
         ix = @view rperm[starts[gid + 1]:-1:1 + starts[gid]]
         @view X[ix]
     end
@@ -15,21 +15,21 @@ end
 
 function group(f, X)
     (; dct, starts, rperm) = _group_core(f, X, values(X))
-    @modify(dct |> Values()) do gid
+    mapvalues(dct) do gid
         @view rperm[starts[gid + 1]:-1:1 + starts[gid]]
     end
 end
 
 function groupmap(f, ::typeof(length), X)
     (; dct, starts, rperm) = _group_core(f, X, similar(X, Nothing))
-    @modify(dct |> Values()) do gid
+    mapvalues(dct) do gid
         starts[gid + 1] - starts[gid]
     end
 end
 
 function groupmap(f, ::typeof(first), X)
     (; dct, starts, rperm) = _group_core(f, X, keys(X))
-    @modify(dct |> Values()) do gid
+    mapvalues(dct) do gid
         ix = rperm[starts[gid + 1]]
         X[ix]
     end
@@ -37,7 +37,7 @@ end
 
 function groupmap(f, ::typeof(last), X)
     (; dct, starts, rperm) = _group_core(f, X, keys(X))
-    @modify(dct |> Values()) do gid
+    mapvalues(dct) do gid
         ix = rperm[1 + starts[gid]]
         X[ix]
     end
@@ -45,7 +45,7 @@ end
 
 function groupmap(f, ::typeof(only), X)
     (; dct, starts, rperm) = _group_core(f, X, keys(X))
-    @modify(dct |> Values()) do gid
+    mapvalues(dct) do gid
         starts[gid + 1] == starts[gid] + 1 || throw(ArgumentError("groupmap(only, X) requires that each group has exactly one element"))
         ix = rperm[starts[gid + 1]]
         X[ix]
@@ -113,4 +113,24 @@ function _group_core(f, X, vals)
     # rperm[starts[group_id + 1]:-1:1 + starts[group_id]] = group_values
 
     return (; dct, starts, rperm)
+end
+
+
+function mapvalues(f, dict::Dict)
+    V = Core.Compiler.return_type(f, Tuple{valtype(dict)})
+    vals = dict.vals
+    newvals = similar(vals, V)
+    @inbounds for i in dict.idxfloor:lastindex(vals)
+        if Base.isslotfilled(dict, i)
+            newvals[i] = f(vals[i])
+        end
+    end
+    _setproperties(dict, (;vals=newvals))
+end
+
+function _setproperties(d::Dict, patch::NamedTuple{(:vals,)})
+    K = keytype(d)
+    V = eltype(patch.vals)
+    @assert length(d.keys) == length(patch.vals)
+    Dict{K,V}(copy(d.slots), copy(d.keys), patch.vals, d.ndel, d.count, d.age, d.idxfloor, d.maxprobe)
 end
