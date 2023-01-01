@@ -116,13 +116,6 @@ function Base.:(==)(A::Union{AbstractArray, MappedAny}, B::Union{AbstractArray, 
     return anymissing ? missing : true
 end
 
-
-mapview(f, X::AbstractArray{T, N}) where {T, N} = MappedArray{Core.Compiler.return_type(f, Tuple{T}), N}(f, X)
-mapview(f, X::Dict{K, V}) where {K, V} = MappedDict{K, Core.Compiler.return_type(f, Tuple{V})}(f, X)
-mapview(f, X) = MappedAny(f, X)
-mapview(f, X::_MTT) = mapview(f ∘ _f(X), parent(X))
-
-
 Base.findfirst(pred::Function, A::MappedArray) = _findfirst(pred, A, inverse(_f(A)))
 _findfirst(pred, A, ::NoInverse) = Base.@invoke findfirst(pred::typeof(pred), A::AbstractArray)
 _findfirst(pred::Union{Base.Fix2{typeof(isequal)}, Base.Fix2{typeof(==)}}, A, invf::Function) = findfirst(pred.f(invf(pred.x)), parent(A))
@@ -139,3 +132,49 @@ _searchsortedlast(A, v, invf::Function; rev=false) = searchsortedlast(parent(A),
 
 # only called for invertible functions: they are either increasing or decreasing
 _is_increasing(f) = f(2) < f(3)
+
+
+mapview(f, X::AbstractArray{T, N}) where {T, N} = MappedArray{Core.Compiler.return_type(f, Tuple{T}), N}(f, X)
+mapview(f, X::Dict{K, V}) where {K, V} = MappedDict{K, Core.Compiler.return_type(f, Tuple{V})}(f, X)
+mapview(f, X) = MappedAny(f, X)
+mapview(f, X::_MTT) = mapview(f ∘ _f(X), parent(X))
+
+maprange(f, start; stop, length) = maprange(f, start, stop; length)
+maprange(f; start, stop, length) = maprange(f, start, stop; length)
+maprange(f, start, stop; length) = maprange(f, promote(start, stop)...; length)
+function maprange(f, start::T, stop::T; length) where {T}
+    lo, hi = minmax(start, stop)
+    rng = range(inverse(f)(start), inverse(f)(stop); length)
+    mapview(rng) do x
+        fx = f(x)
+        x === first(rng) && return oftype(fx, start)
+        x === last(rng) && return oftype(fx, stop)
+        clamp(fx, lo, hi)
+    end
+end
+
+
+discreterange(f, start, stop; length::Int) = discreterange(f, promote(start, stop)...; length)
+function discreterange(f, start::T, stop::T; length::Int) where {T}
+    start >= stop && throw(ArgumentError("start must be less than stop"))
+    𝟙 = oneunit(T)
+    length - 1 > abs(start - stop) / 𝟙 && throw(ArgumentError("length must be greater than the distance between start and stop"))
+    res = Vector{T}(undef, length)
+    res[1] = start
+    inc = stop > start ? 𝟙 : -𝟙
+
+    step = (inverse(f)(stop) - inverse(f)(start)) / (length - 1)
+    prev = start
+    for i in 2:length
+        next = f(inverse(f)(prev) + step)
+        if next >= prev + 𝟙
+            res[i] = round(T, next)
+            prev = next
+        else
+            prev = prev + inc
+            res[i] = round(T, prev)
+            step = (inverse(f)(stop) - inverse(f)(prev)) / (length - i)
+        end
+    end
+    return res
+end

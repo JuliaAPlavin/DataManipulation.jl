@@ -12,7 +12,7 @@ export
     group, groupfind, groupview, groupmap,
     filterview,
     skip, skipnan,
-    mapview,
+    mapview, maprange,
     findonly
 
 
