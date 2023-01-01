@@ -1,8 +1,6 @@
 module ArraysExtra
 
 using DataPipes
-using Accessors
-using InverseFunctions
 using StructArrays
 using Dictionaries
 using Reexport
