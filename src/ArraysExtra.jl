@@ -16,10 +16,12 @@ export
     mapview, maprange,
     findonly,
     sortview, uniqueview,
-    sentinelview
+    sentinelview,
+    materialize_views
 
 
 include("symbols.jl")
+include("views.jl")
 include("filtermap.jl")
 include("flatmap.jl")
 include("mutate.jl")

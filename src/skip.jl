@@ -53,6 +53,8 @@ function Base.filter(f, s::Skip)
     y
 end
 
+materialize_views(s::Skip) = collect(s)
+
 Base.BroadcastStyle(::Type{<:Skip}) = Broadcast.Style{Skip}()
 Base.BroadcastStyle(::Broadcast.Style{Skip}, ::Broadcast.DefaultArrayStyle) = Broadcast.Style{Skip}()
 Base.BroadcastStyle(::Broadcast.DefaultArrayStyle, ::Broadcast.Style{Skip}) = Broadcast.Style{Skip}()
