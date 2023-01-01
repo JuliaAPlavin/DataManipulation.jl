@@ -326,8 +326,11 @@ end
     end
 end
 
-
-
+@testset "findonly" begin
+    @test @inferred(findonly(iseven, [1, 2])) == 2
+    @test_throws "more than one" findonly(isodd, [1, 2, 3])
+    @test_throws "no element" findonly(isodd, [2, 4])
+end
 
 
 
