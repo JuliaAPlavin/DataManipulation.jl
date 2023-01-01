@@ -1,4 +1,3 @@
-using Accessors
 using TestItems
 using TestItemRunner
 @run_package_tests
@@ -78,7 +77,7 @@ end
         @test Y isa StructArray
     end
 
-    using Accessors
+    using AccessorsExtra
     @testset "flatmap⁻" begin
         ArraysExtra.flatmap⁻(@optic(_.vals), (x, v) -> (;x..., v), [(a=1, vals=[2, 3]), (a=4, vals=[5])]) == [(a=1, v=2), (a=1, v=3), (a=4, v=5)]
     end
@@ -154,7 +153,7 @@ end
 
 @testitem "mapview" begin
     using ArraysExtra: MappedArray
-    using Accessors
+    using AccessorsExtra
 
     @testset "array" begin
         a = [1, 2, 3]
@@ -247,26 +246,23 @@ end
 
     using Unitful
     @testset "range" begin
-        lr = @inferred maprange(@optic(10^_), 0.1, 10, length=5)
+        @test maprange(identity, 1, 10, length=5) ≈ range(1, 10, length=5)
+        lr = @inferred maprange(log10, 0.1, 10, length=5)
         @test lr ≈ [0.1, √0.1, 1, √10, 10]
-        for f in [@optic(0.1^_), exp, exp2, exp10]
+        for f in [log, log2, log10,] # @optic(log(0.1, _))] XXX - see my fix PR to InverseFunctions
             lr = @inferred maprange(f, 0.1, 10, length=5)
             @test lr ≈ [0.1, √0.1, 1, √10, 10]
+            lr = @inferred maprange(f, 10, 0.1, length=5)
+            @test lr ≈ [0.1, √0.1, 1, √10, 10] |> reverse
         end
-        lr = @inferred maprange(@optic(123^_), 10, 0.1, length=5)
-        @test lr ≈ [10, √10, 1, √0.1, 0.1]
-        lr = @inferred maprange(@optic(0.123^_), 10, 0.1, length=5)
-        @test lr ≈ [10, √10, 1, √0.1, 0.1]
-        lr = @inferred maprange(@optic(0.123^_), 2, 2, length=5)
-        @test lr == [2, 2, 2, 2, 2]
 
-        lr = @inferred maprange(@optic(1u"m" * exp(_)), 0.1u"m", 10u"m", length=5)
+        lr = @inferred maprange(@optic(log(ustrip(u"m", _))), 0.1u"m", 10u"m", length=5)
         @test lr ≈ [0.1, √0.1, 1, √10, 10]u"m"
-        lr = @inferred maprange(@optic(1u"m" * exp(_)), 10u"cm", 10u"m", length=5)
+        lr = @inferred maprange(@optic(log(ustrip(u"m", _))), 10u"cm", 10u"m", length=5)
         @test lr ≈ [0.1, √0.1, 1, √10, 10]u"m"
 
-        @testset for base in [1.1, 3, 10, 10^3], a in [1, 10, 100, 1000, 1e-10, 1e10], b in [1, 10, 100, 1000, 1e-10, 1e10], len in [2:10; 12345]
-            rng = maprange(@optic(base^_), a, b, length=len)
+        @testset for a in [1, 10, 100, 1000, 1e-10, 1e10], b in [1, 10, 100, 1000, 1e-10, 1e10], len in [2:10; 12345]
+            rng = maprange(log, a, b, length=len)
             @test length(rng) == len
             a != b && @test allunique(rng)
             @test issorted(rng, rev=a > b)
@@ -278,23 +274,23 @@ end
 
 @testitem "discreterange" begin
     using ArraysExtra: discreterange
-    using Accessors
+    using AccessorsExtra
     using Dates
     using Unitful
 
-    @test discreterange(exp, 10, 10^5, length=5)::Vector{Int} == [10, 100, 1000, 10000, 100000]
-    @test discreterange(exp, 2, 10, length=5)::Vector{Int} == [2, 3, 4, 7, 10]
-    @test discreterange(@optic(1u"m" * exp(_)), 2u"m", 10u"m", length=5) == [2, 3, 4, 7, 10]u"m"
-    @test discreterange(@optic(1u"m" * exp(_)), 200u"cm", 10u"m", length=5) == [2, 3, 4, 7, 10]u"m"
-    @test_broken discreterange(@optic(Second(1) * exp(_)), Second(2), Second(10), length=5)
+    @test discreterange(log, 10, 10^5, length=5)::Vector{Int} == [10, 100, 1000, 10000, 100000]
+    @test discreterange(log, 2, 10, length=5)::Vector{Int} == [2, 3, 4, 7, 10]
+    @test discreterange(@optic(log(ustrip(u"m", _))), 2u"m", 10u"m", length=5) == [2, 3, 4, 7, 10]u"m"
+    @test discreterange(@optic(log(ustrip(u"m", _))), 200u"cm", 10u"m", length=5) == [2, 3, 4, 7, 10]u"m"
+    @test_broken discreterange(@optic(log(_ / Second(1))), Second(2), Second(10), length=5)
 
     @testset for a in [1, 10, 100, 1000, 10^10], b in [1, 10, 100, 1000, 10^10], len in [2:100; 12345]
         a >= b && continue
         if len > abs(a - b) + 1
-            @test_throws "length must be greater" discreterange(exp, a, b, length=len)
+            @test_throws "length must be greater" discreterange(log, a, b, length=len)
             continue
         end
-        rng = discreterange(exp, a, b, length=len)::Vector{Int}
+        rng = discreterange(log, a, b, length=len)::Vector{Int}
         @test length(rng) == len
         @test allunique(rng)
         @test issorted(rng, rev=a > b)

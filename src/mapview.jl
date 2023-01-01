@@ -144,9 +144,9 @@ maprange(f; start, stop, length) = maprange(f, start, stop; length)
 maprange(f, start, stop; length) = maprange(f, promote(start, stop)...; length)
 function maprange(f, start::T, stop::T; length) where {T}
     lo, hi = minmax(start, stop)
-    rng = range(inverse(f)(start), inverse(f)(stop); length)
+    rng = range(f(start), f(stop); length)
     mapview(rng) do x
-        fx = f(x)
+        fx = inverse(f)(x)
         x === first(rng) && return oftype(fx, start)
         x === last(rng) && return oftype(fx, stop)
         clamp(fx, lo, hi)
@@ -163,17 +163,17 @@ function discreterange(f, start::T, stop::T; length::Int) where {T}
     res[1] = start
     inc = stop > start ? 𝟙 : -𝟙
 
-    step = (inverse(f)(stop) - inverse(f)(start)) / (length - 1)
+    step = (f(stop) - f(start)) / (length - 1)
     prev = start
     for i in 2:length
-        next = f(inverse(f)(prev) + step)
+        next = inverse(f)(f(prev) + step)
         if next >= prev + 𝟙
             res[i] = round(T, next)
             prev = next
         else
             prev = prev + inc
             res[i] = round(T, prev)
-            step = (inverse(f)(stop) - inverse(f)(prev)) / (length - i)
+            step = (f(stop) - f(prev)) / (length - i)
         end
     end
     return res
