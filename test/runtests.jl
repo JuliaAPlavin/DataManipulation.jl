@@ -267,54 +267,60 @@ end
 end
 
 @testset "mapview" begin
-    a = [1, 2, 3]
-    ma = @inferred mapview(@optic(_ + 1), a)
-    @test ma == [2, 3, 4]
-    @test ma isa AbstractVector{Int}
-    @test @inferred(ma[3]) == 4
-    @test @inferred(ma[CartesianIndex(3)]) == 4
-    @test @inferred(ma[2:3])::MappedArray == [3, 4]
-    @test @inferred(map(x -> x * 2, ma))::Vector{Int} == [4, 6, 8]
-    @test reverse(ma)::MappedArray == [4, 3, 2]
-    @test view(ma, 2:3)::SubArray == [3, 4]
-    @test size(similar(typeof(ma), 3)::Vector{Int}) == (3,)
-    
-    # ensure we get a view
-    a[2] = 20
-    @test ma == [2, 21, 4]
+    @testset "array" begin
+        a = [1, 2, 3]
+        ma = @inferred mapview(@optic(_ + 1), a)
+        @test ma == [2, 3, 4]
+        @test ma isa AbstractVector{Int}
+        @test @inferred(ma[3]) == 4
+        @test @inferred(ma[CartesianIndex(3)]) == 4
+        @test @inferred(ma[2:3])::MappedArray == [3, 4]
+        @test @inferred(map(x -> x * 2, ma))::Vector{Int} == [4, 6, 8]
+        @test reverse(ma)::MappedArray == [4, 3, 2]
+        @test view(ma, 2:3)::SubArray == [3, 4]
+        @test size(similar(typeof(ma), 3)::Vector{Int}) == (3,)
+        
+        # ensure we get a view
+        a[2] = 20
+        @test ma == [2, 21, 4]
 
-    ma[3] = 11
-    ma[1:2] = [21, 31]
-    push!(ma, 101)
-    @test a == [20, 30, 10, 100]
-    @test ma == [21, 31, 11, 101]
-
-
-    a = Dict(:a => 1, :b => 2, :c => 3)
-    ma = @inferred mapview(@optic(_ + 1), a)
-    @test ma == Dict(:a => 2, :b => 3, :c => 4)
-    @test ma isa AbstractDict{Symbol, Int}
-    @test @inferred(ma[:c]) == 4
-    # ensure we get a view
-    a[:b] = 20
-    @test ma == Dict(:a => 2, :b => 21, :c => 4)
-
-    ma[:c] = 11
-    ma[:d] = 31
-    @test a == Dict(:a => 1, :b => 20, :c => 10, :d => 30)
-    @test ma == Dict(:a => 2, :b => 21, :c => 11, :d => 31)
+        ma[3] = 11
+        ma[1:2] = [21, 31]
+        push!(ma, 101)
+        @test a == [20, 30, 10, 100]
+        @test ma == [21, 31, 11, 101]
 
 
-    a = [1, 2, 3]
-    ma = @inferred mapview(x -> x + 1, (x for x in a))
-    @test ma == [2, 3, 4]
-    @test @inferred(eltype(ma)) == Int
-    @test @inferred(first(ma)) == 2
-    @test @inferred(collect(ma)) == [2, 3, 4]
-    @test @inferred(findmax(ma)) == (4, 3)
-    # ensure we get a view
-    a[2] = 20
-    @test ma == [2, 21, 4]
+    end
+
+    @testset "dict" begin
+        a = Dict(:a => 1, :b => 2, :c => 3)
+        ma = @inferred mapview(@optic(_ + 1), a)
+        @test ma == Dict(:a => 2, :b => 3, :c => 4)
+        @test ma isa AbstractDict{Symbol, Int}
+        @test @inferred(ma[:c]) == 4
+        # ensure we get a view
+        a[:b] = 20
+        @test ma == Dict(:a => 2, :b => 21, :c => 4)
+
+        ma[:c] = 11
+        ma[:d] = 31
+        @test a == Dict(:a => 1, :b => 20, :c => 10, :d => 30)
+        @test ma == Dict(:a => 2, :b => 21, :c => 11, :d => 31)
+    end
+
+    @testset "iterator" begin
+        a = [1, 2, 3]
+        ma = @inferred mapview(x -> x + 1, (x for x in a))
+        @test ma == [2, 3, 4]
+        @test @inferred(eltype(ma)) == Int
+        @test @inferred(first(ma)) == 2
+        @test @inferred(collect(ma)) == [2, 3, 4]
+        @test @inferred(findmax(ma)) == (4, 3)
+        # ensure we get a view
+        a[2] = 20
+        @test ma == [2, 21, 4]
+    end
 end
 
 

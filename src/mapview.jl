@@ -11,14 +11,14 @@ MappedArray{T, N}(f, X) where {T, N} = MappedArray{T, N, typeof(f), typeof(X)}(f
 parent_type(::Type{<:MappedArray{T, N, F, TX}}) where {T, N, F, TX} = TX
 
 Base.@propagate_inbounds Base.getindex(A::MappedArray, I...) = _getindex(A, to_indices(A, I))
-Base.@propagate_inbounds _getindex(A, I::Tuple{Vararg{Integer}}) = A.f(parent(A)[I...])
-Base.@propagate_inbounds _getindex(A, I::Tuple) = typeof(A)(A.f, parent(A)[I...])
+Base.@propagate_inbounds _getindex(A, I::Tuple{Vararg{Integer}}) = _f(A)(parent(A)[I...])
+Base.@propagate_inbounds _getindex(A, I::Tuple) = typeof(A)(_f(A), parent(A)[I...])
 
 Base.@propagate_inbounds Base.setindex!(A::MappedArray, v, I...) = _setindex!(A, v, to_indices(A, I))
-Base.@propagate_inbounds _setindex!(A, v, I::Tuple{Vararg{Integer}}) = (parent(A)[I...] = set(parent(A)[I...], A.f, v); A)
-Base.@propagate_inbounds _setindex!(A, v, I::Tuple) = (parent(A)[I...] = set.(parent(A)[I...], Ref(A.f), v); A)
+Base.@propagate_inbounds _setindex!(A, v, I::Tuple{Vararg{Integer}}) = (parent(A)[I...] = set(parent(A)[I...], _f(A), v); A)
+Base.@propagate_inbounds _setindex!(A, v, I::Tuple) = (parent(A)[I...] = set.(parent(A)[I...], Ref(_f(A)), v); A)
 
-Base.append!(A::MappedArray, iter) = (append!(parent(A), map(inverse(A.f), iter)); A)
+Base.append!(A::MappedArray, iter) = (append!(parent(A), map(inverse(_f(A)), iter)); A)
 
 
 struct MappedDict{K, V, F, TX <: AbstractDict{K}} <: AbstractDict{K, V}
@@ -28,12 +28,12 @@ end
 MappedDict{K, V}(f, X) where {K, V} = MappedDict{K, V, typeof(f), typeof(X)}(f, X)
 parent_type(::Type{<:MappedDict{K, V, F, TX}}) where {K, V, F, TX} = TX
 
-Base.@propagate_inbounds Base.getindex(A::MappedDict, I...) = A.f(A.parent[I...])
+Base.@propagate_inbounds Base.getindex(A::MappedDict, I...) = _f(A)(parent(A)[I...])
 Base.@propagate_inbounds function Base.setindex!(A::MappedDict, v, k)
     oldv = get(parent(A), k, Base.secret_table_token)
     newv = oldv === Base.secret_table_token ?
-        inverse(A.f)(v) :
-        set(oldv, A.f, v)
+        inverse(_f(A))(v) :
+        set(oldv, _f(A), v)
     parent(A)[k] = newv
     A
 end
@@ -42,7 +42,7 @@ Base.get(A::MappedDict, k, default) = get(Returns(default), A, k)
 function Base.get(default::Function, A::MappedDict, k)
     v = get(parent(A), k, Base.secret_table_token)
     v === Base.secret_table_token && return default()
-    return A.f(v)
+    return _f(A)(v)
 end
 
 
@@ -51,7 +51,7 @@ end
 	it = iterate(parent(A), state...)
 	isnothing(it) ?
         nothing :
-        (first(it).first => A.f(first(it).second), last(it))
+        (first(it).first => _f(A)(first(it).second), last(it))
 end
 
 
@@ -61,10 +61,10 @@ struct MappedAny{F, TX}
 end
 parent_type(::Type{MappedAny{F, TX}}) where {F, TX} = TX
 
-Base.@propagate_inbounds Base.getindex(A::MappedAny, I...) = A.f(A.parent[I...])
-Base.@propagate_inbounds Base.setindex!(A::MappedAny, v, I...) = (parent(A)[I...] = set(parent(A)[I...], A.f, v); A)
+Base.@propagate_inbounds Base.getindex(A::MappedAny, I...) = _f(A)(parent(A)[I...])
+Base.@propagate_inbounds Base.setindex!(A::MappedAny, v, I...) = (parent(A)[I...] = set(parent(A)[I...], _f(A), v); A)
 
-Base.eltype(A::MappedAny) = Core.Compiler.return_type(A.f, Tuple{eltype(parent(A))})
+Base.eltype(A::MappedAny) = Core.Compiler.return_type(_f(A), Tuple{eltype(parent(A))})
 function Base.eltype(::Type{T}) where {T}
     # by default, Base.eltype returns Any for mapped/flattened iterators
     ET = Core.Compiler.return_type(first, Tuple{T})
@@ -75,12 +75,13 @@ end
 	it = iterate(parent(A), state...)
 	isnothing(it) ?
         nothing :
-        (A.f(first(it)), last(it))
+        (_f(A)(first(it)), last(it))
 end
 
 
 const _MTT = Union{MappedArray, MappedDict, MappedAny}
-Base.parent(A::_MTT) = A.parent
+Base.parent(A::_MTT) = getfield(A, :parent)
+_f(A::_MTT) = getfield(A, :f)
 Base.size(A::_MTT) = size(parent(A))
 Base.length(A::_MTT) = length(parent(A))
 Base.IndexStyle(::Type{MT}) where {MT <: _MTT} = IndexStyle(parent_type(MT))
@@ -88,10 +89,10 @@ Base.IteratorSize(::Type{MT}) where {MT <: _MTT} = Base.IteratorSize(parent_type
 Base.IteratorEltype(::Type{MT}) where {MT <: _MTT} = Base.IteratorEltype(parent_type(MT))
 Base.axes(A::_MTT) = axes(parent(A))
 Base.keys(A::_MTT) = keys(parent(A))
-Base.values(A::_MTT) = mapview(A.f, values(parent(A)))
+Base.values(A::_MTT) = mapview(_f(A), values(parent(A)))
 Base.keytype(A::_MTT) = keytype(parent(A))
 Base.valtype(A::_MTT) = eltype(A)
-Base.reverse(A::_MTT, args...; kwargs...) = mapview(A.f, reverse(parent(A), args...; kwargs...))
+Base.reverse(A::_MTT, args...; kwargs...) = mapview(_f(A), reverse(parent(A), args...; kwargs...))
 
 for type in (
         :Dims,
@@ -105,7 +106,8 @@ for type in (
 end
 
 
-function Base.:(==)(A::Union{AbstractArray, _MTT}, B::Union{AbstractArray, _MTT})
+
+function Base.:(==)(A::Union{AbstractArray, MappedAny}, B::Union{AbstractArray, MappedAny})
     if axes(A) != axes(B)
         return false
     end
