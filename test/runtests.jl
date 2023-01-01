@@ -1,8 +1,8 @@
 using ArraysExtra
 using StructArrays
 using AxisKeys
-using Dictionaries
-using TypedTables
+using Dictionaries: dictionary, AbstractDictionary
+using TypedTables: Table
 using Test
 
 
@@ -94,21 +94,21 @@ end
     end
 end
 
-# @testset "mutate" begin
-#     X = [(a=1, b=(c=2,)), (a=3, b=(c=4,))]
-#     @test mutate(x -> (c=x.a^2,), X) == [(a=1, b=(c=2,), c=1), (a=3, b=(c=4,), c=9)]
-#     @test mutate(x -> (a=x.a^2,), X) == [(a=1, b=(c=2,)), (a=9, b=(c=4,))]
-#     @test mutate(c=x -> x.a^2, X) == [(a=1, b=(c=2,), c=1), (a=3, b=(c=4,), c=9)]
-#     @test mutate(c=x -> x.a^2, d=x -> x.a + 1, X) == [(a=1, b=(c=2,), c=1, d=2), (a=3, b=(c=4,), c=9, d=4)]
-#     @test mutate(x -> (b=(d=x.a,),), X) == [(a=1, b=(d=1,)), (a=3, b=(d=3,))]
+@testset "mutate" begin
+    X = [(a=1, b=(c=2,)), (a=3, b=(c=4,))]
+    @test mutate(x -> (c=x.a^2,), X) == [(a=1, b=(c=2,), c=1), (a=3, b=(c=4,), c=9)]
+    @test mutate(x -> (a=x.a^2,), X) == [(a=1, b=(c=2,)), (a=9, b=(c=4,))]
+    @test mutate(c=x -> x.a^2, X) == [(a=1, b=(c=2,), c=1), (a=3, b=(c=4,), c=9)]
+    @test mutate(c=x -> x.a^2, d=x -> x.a + 1, X) == [(a=1, b=(c=2,), c=1, d=2), (a=3, b=(c=4,), c=9, d=4)]
+    @test mutate(x -> (b=(d=x.a,),), X) == [(a=1, b=(d=1,)), (a=3, b=(d=3,))]
 
-#     S = StructArray(X)
-#     Sm = mutate(c=x -> x.a^2, S)
-#     @test eltype(Sm) == @NamedTuple{a::Int, b::@NamedTuple{c::Int}, c::Int}
-#     @test Sm.a === S.a
-#     @test Sm.b === S.b
-#     @test Sm.c == [1, 9]
-# end
+    S = StructArray(X)
+    Sm = mutate(c=x -> x.a^2, S)
+    @test eltype(Sm) == @NamedTuple{a::Int, b::@NamedTuple{c::Int}, c::Int}
+    @test Sm.a === S.a
+    @test Sm.b === S.b
+    @test Sm.c == [1, 9]
+end
 
 @testset "group" begin
     @testset "basic" begin
@@ -213,6 +213,25 @@ end
         # xs[6] = 123
         # @test g == Dict(false => [123, 4], true => [1, 3, 5])
     end
+end
+
+@testset "filterview" begin
+    a = [1, 2, 3]
+    fv = @inferred(filterview(x -> x >= 2, a))
+    @test fv == [2, 3]
+    # ensure we get a view
+    fv[1] = 10
+    @test a == [1, 10, 3]
+
+    a = Dict(1 => :a, 2 => :b, 3 => :c)
+    fv = @inferred filterview(((k, v),) -> k == 2 || v == :c, a)
+    @test fv == Dict(2 => :b, 3 => :c)
+    @test length(fv) == 2
+    @test !isempty(fv)
+    @test fv[2] == :b
+    @test_throws "key 1 not found" fv[1]
+    @test collect(keys(fv)) == [2, 3]
+    @test collect(values(fv)) == [:b, :c]
 end
 
 # @testset "(un)nest" begin
