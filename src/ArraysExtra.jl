@@ -3,7 +3,7 @@ module ArraysExtra
 using AccessorsExtra
 using StructArrays
 
-export @S_str, filtermap, flatmap, flatmap!, flatten, flatten!, mutate, group, groupfind, groupview
+export @S_str, filtermap, flatmap, flatmap!, flatten, flatten!, mutate, group, groupfind, groupview, groupmap
 
 include("symbols.jl")
 include("filtermap.jl")

@@ -139,6 +139,20 @@ end
         @test g == Dict(false => [2, 4], true => [1, 3, 5])
         @test isconcretetype(eltype(g))
         @test eltype(g) <: Pair{Bool, <:SubArray{Int}}
+
+
+        g = @inferred(group(isnothing, [1, 2, 3, nothing, 4, 5, nothing]))
+        @test g == Dict(false => [1, 2, 3, 4, 5], true => [nothing, nothing])
+        @test eltype(g) <: Pair{Bool, <:SubArray{Union{Nothing, Int}}}
+    end
+
+    @testset "groupmap" begin
+        xs = 3 .* [1, 2, 3, 4, 5]
+        @test @inferred(groupmap(isodd, length, xs)) == Dict(false => 2, true => 3)
+        @test @inferred(groupmap(isodd, first, xs)) == Dict(false => 6, true => 3)
+        @test @inferred(groupmap(isodd, last, xs)) == Dict(false => 12, true => 15)
+        @test_throws "exactly one element" groupmap(isodd, only, xs)
+        @test @inferred(groupmap(isodd, only, [10, 11])) == Dict(false => 10, true => 11)
     end
 
     @testset "structarray" begin

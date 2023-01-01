@@ -20,6 +20,38 @@ function group(f, X)
     end
 end
 
+function groupmap(f, ::typeof(length), X)
+    (; dct, starts, rperm) = _group_core(f, X, similar(X, Nothing))
+    @modify(dct |> Values()) do gid
+        starts[gid + 1] - starts[gid]
+    end
+end
+
+function groupmap(f, ::typeof(first), X)
+    (; dct, starts, rperm) = _group_core(f, X, keys(X))
+    @modify(dct |> Values()) do gid
+        ix = rperm[starts[gid + 1]]
+        X[ix]
+    end
+end
+
+function groupmap(f, ::typeof(last), X)
+    (; dct, starts, rperm) = _group_core(f, X, keys(X))
+    @modify(dct |> Values()) do gid
+        ix = rperm[1 + starts[gid]]
+        X[ix]
+    end
+end
+
+function groupmap(f, ::typeof(only), X)
+    (; dct, starts, rperm) = _group_core(f, X, keys(X))
+    @modify(dct |> Values()) do gid
+        starts[gid + 1] == starts[gid] + 1 || throw(ArgumentError("groupmap(only, X) requires that each group has exactly one element"))
+        ix = rperm[starts[gid + 1]]
+        X[ix]
+    end
+end
+
 function _group_core(f, X, vals)
     ngroups = 0
     groups = similar(X, Int)
