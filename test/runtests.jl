@@ -1,20 +1,18 @@
-using ArraysExtra
-using ArraysExtra: MappedArray
 using Accessors
-using StructArrays
-using AxisKeys
-using Dictionaries: dictionary, AbstractDictionary
-using TypedTables: Table
-using Test
+using TestItems
+using TestItemRunner
+@run_package_tests
 
 
-@testset "symbols" begin
+@testitem "symbols" begin
     x = (a=123, def="c")
     @test :a(x) == 123
     @test S"def"(x) == "c"
 end
 
-@testset "filtermap" begin
+@testitem "filtermap" begin
+    using AxisKeys
+
     X = 1:10
     Y = filtermap(x -> x % 3 == 0 ? Some(x^2) : nothing, X)
     @test Y == [9, 36, 81]
@@ -28,7 +26,10 @@ end
     @test filtermap(x -> isodd(x) ? Some(x^2) : nothing, KeyedArray([1, 2, 3], x=[10, 20, 30]))::KeyedArray == KeyedArray([1, 9], x=[10, 30])
 end
 
-@testset "flatmap" begin
+@testitem "flatmap" begin
+    using AxisKeys
+    using StructArrays
+
     @testset "outer func" begin
         @test @inferred(flatmap(i->1:i, 1:3))::Vector{Int} == [1, 1,2, 1,2,3]
 
@@ -96,7 +97,9 @@ end
     end
 end
 
-@testset "mutate" begin
+@testitem "mutate" begin
+    using StructArrays
+
     X = [(a=1, b=(c=2,)), (a=3, b=(c=4,))]
     @test mutate(x -> (c=x.a^2,), X) == [(a=1, b=(c=2,), c=1), (a=3, b=(c=4,), c=9)]
     @test mutate(x -> (a=x.a^2,), X) == [(a=1, b=(c=2,)), (a=9, b=(c=4,))]
@@ -112,7 +115,7 @@ end
     @test Sm.c == [1, 9]
 end
 
-@testset "group" begin
+@testitem "group" begin
     @testset "basic" begin
         xs = 3 .* [1, 2, 3, 4, 5]
         g = @inferred group(isodd, xs)
@@ -158,6 +161,8 @@ end
     end
 
     @testset "structarray" begin
+        using StructArrays
+
         xs = StructArray(a=3 .* [1, 2, 3, 4, 5])
         g = @inferred group(x -> isodd(x.a), xs)
         @test g == Dict(false => [(a=6,), (a=12,)], true => [(a=3,), (a=9,), (a=15,)])
@@ -171,6 +176,8 @@ end
     end
 
     @testset "keyedarray" begin
+        using AxisKeys
+
         xs = KeyedArray(1:5, a=3 .* [1, 2, 3, 4, 5])
         g = @inferred group(isodd, xs)
         @test g == Dict(false => [2, 4], true => [1, 3, 5])
@@ -186,6 +193,8 @@ end
     end
 
     @testset "typedtable" begin
+        using TypedTables
+
         xs = Table(a=3 .* [1, 2, 3, 4, 5])
         g = @inferred group(x -> isodd(x.a), xs)
         @test g == Dict(false => [(a=6,), (a=12,)], true => [(a=3,), (a=9,), (a=15,)])
@@ -199,6 +208,8 @@ end
     end
 
     @testset "dictionary" begin
+        using Dictionaries
+
         Base.similar(d::AbstractDictionary, dims::Base.OneTo) = similar(Vector{valtype(d)}, dims)
 
         xs = dictionary(3 .* [1, 2, 3, 4, 5] .=> 1:5)
@@ -217,7 +228,7 @@ end
     end
 end
 
-@testset "filterview" begin
+@testitem "filterview" begin
     a = [1, 2, 3]
     fv = @inferred(filterview(x -> x >= 2, a))
     @test fv == [2, 3]
@@ -236,7 +247,10 @@ end
     @test collect(values(fv)) == [:b, :c]
 end
 
-@testset "skip" begin
+@testitem "skip" begin
+    using StructArrays
+    using AxisKeys
+
     a = [missing, -1, 2, 3]
     sa = @inferred(skip(x -> ismissing(x) || x < 0, a))
     @test collect(sa) == [2, 3]
@@ -266,7 +280,10 @@ end
     @test_broken collect(sa)::KeyedArray == KeyedArray([2, 3], b=[3, 4])
 end
 
-@testset "mapview" begin
+@testitem "mapview" begin
+    using ArraysExtra: MappedArray
+    using Accessors
+
     @testset "array" begin
         a = [1, 2, 3]
         ma = @inferred mapview(@optic(_ + 1), a)
@@ -290,10 +307,15 @@ end
         @test a == [20, 30, 10, 100]
         @test ma == [21, 31, 11, 101]
 
-
         ma = @inferred mapview(x -> (; x=x + 1), a)
         @test ma.x::MappedArray{Int} == [21, 31, 11, 101]
         @test parent(ma.x) === parent(ma) === a
+
+        # multiple arrays - not implemented
+        # ma = @inferred mapview((x, y) -> x + y, 1:3, [10, 20, 30])
+        # @test ma == [11, 22, 33]
+        # @test @inferred(ma[2]) == 22
+        # @test @inferred(ma[CartesianIndex(2)]) == 22
 
         @testset "find" begin
             ma = mapview(@optic(_ * 10), [1, 2, 2, 2, 3, 4])
@@ -343,15 +365,18 @@ end
     end
 end
 
-@testset "findonly" begin
+@testitem "findonly" begin
     @test @inferred(findonly(iseven, [1, 2])) == 2
     @test_throws "more than one" findonly(isodd, [1, 2, 3])
     @test_throws "no element" findonly(isodd, [2, 4])
 end
 
+@testitem "interactions" begin
+    
+end
 
 
-# @testset "(un)nest" begin
+# @testitem "(un)nest" begin
 #     @test @inferred(unnest((a=(x=1, y="2"), b=:z))) === (a_x=1, a_y="2", b=:z)
 #     @test_throws ErrorException unnest((a=(x=1, y="2"), a_x=3, b=:z))
 #     @test @inferred(unnest((a=(x=1, y=(u="2", w=3)), b=:z))) === (a_x=1, a_y=(u="2", w=3), b=:z)
@@ -377,7 +402,7 @@ end
 #     # @test replace( (name="abc", ra=1, dec=2), @o(_[(:ra, :dec)]) => tuple => @o(_.coords) ) == (name="abc", coords=(1, 2))
 # end
 
-# @testset "vcat" begin
+# @testitem "vcat" begin
 #     X = [(a=1, b=2), (a=2, b=3)]
 #     Y = [(a=2, b=1)]
 

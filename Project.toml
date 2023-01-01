@@ -10,5 +10,6 @@ StructArrays = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
 
 [compat]
 AccessorsExtra = "0.1.11"
+InverseFunctions = "0.1.7"
 StructArrays = "0.6.12"
 julia = "1.6"
