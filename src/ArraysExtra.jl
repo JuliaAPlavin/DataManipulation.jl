@@ -4,18 +4,16 @@ using Accessors
 using InverseFunctions
 using StructArrays
 using Dictionaries
-# using Reexport
-# @reexport using Skipper
-# @reexport using FlexiGroups
+using Reexport
+@reexport using Skipper
+@reexport using FlexiGroups
+@reexport using FilterMaps
 
 export
     @S_str,
-    filtermap,
-    flatmap, flatmap!, flatten, flatten!,
     mutate, mutateview,
     filterview,
     mapview, maprange,
-    findonly,
     sortview, uniqueview,
     sentinelview,
     materialize_views
@@ -23,8 +21,6 @@ export
 
 include("symbols.jl")
 include("views.jl")
-include("filtermap.jl")
-include("flatmap.jl")
 include("mutate.jl")
 include("filterview.jl")
 include("mapview.jl")
@@ -32,12 +28,11 @@ include("uniqueview.jl")
 include("sentinelview.jl")
 
 
-function findonly(pred, A)
-    ix = findfirst(pred, A)
-    isnothing(ix) && throw(ArgumentError("no element satisfies the predicate"))
-    isnothing(findnext(pred, A, nextind(A, ix))) || throw(ArgumentError("more than one element satisfies the predicate"))
-    return ix
-end
+
+materialize_views(s::Skipper.Skip) = collect(s)
+Base.getproperty(A::Skipper.Skip, p::Symbol) = mapview(Accessors.PropertyLens(p), A)
+Base.getproperty(A::Skipper.Skip, p) = mapview(Accessors.PropertyLens(p), A)
+
 
 
 _eltype(::T) where {T} = _eltype(T)
@@ -49,7 +44,5 @@ function _eltype(::Type{T}) where {T}
     ET = Core.Compiler.return_type(first, Tuple{T})
     ET === Union{} ? Any : ET
 end
-
-_valtype(X) = _eltype(values(X))
 
 end
