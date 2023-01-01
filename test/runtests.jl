@@ -234,6 +234,36 @@ end
     @test collect(values(fv)) == [:b, :c]
 end
 
+@testset "skip" begin
+    a = [missing, -1, 2, 3]
+    sa = @inferred(skip(x -> ismissing(x) || x < 0, a))
+    @test collect(sa) == [2, 3]
+    # ensure we get a view
+    a[4] = 20
+    @test collect(sa) == [2, 20]
+
+    @test_throws "is skipped" sa[1]
+    @test sa[3] == 2
+    @test map(x -> x + 1, sa) == [3, 21]
+    @test filter(x -> x > 10, sa) == [20]
+    @test findmax(sa) == (20, 4)
+
+    @test collect(skipnan([1, NaN, 3])) == [1, 3]
+
+    @test @inferred(eltype(skip(ismissing, [1, missing, nothing, 2, 3]))) == Union{Int, Nothing}
+    @test @inferred(eltype(skip(isnothing, [1, missing, nothing, 2, 3]))) == Union{Int, Missing}
+    @test @inferred(eltype(skip(x -> !(x isa Int), [1, missing, nothing, 2, 3]))) == Int
+    @test @inferred(eltype(skip(x -> ismissing(x) || x < 0, [1, missing, 2, 3]))) == Int
+
+    a = StructArray(a=[missing, -1, 2, 3])
+    sa = @inferred skip(x -> ismissing(x.a) || x.a < 0, a)
+    @test collect(sa).a == [2, 3]
+
+    a = KeyedArray([missing, -1, 2, 3], b=[1, 2, 3, 4])
+    sa = @inferred skip(x -> ismissing(x) || x < 0, a)
+    @test_broken collect(sa)::KeyedArray == KeyedArray([2, 3], b=[3, 4])
+end
+
 # @testset "(un)nest" begin
 #     @test @inferred(unnest((a=(x=1, y="2"), b=:z))) === (a_x=1, a_y="2", b=:z)
 #     @test_throws ErrorException unnest((a=(x=1, y="2"), a_x=3, b=:z))
