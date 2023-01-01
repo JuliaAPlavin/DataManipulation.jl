@@ -69,6 +69,12 @@ end
         a = @inferred(flatten([StructVector(a=[1, 2]), StructVector(a=[1, 2, 3])]))::StructArray
         @test a == [(a=1,), (a=2,), (a=1,), (a=2,), (a=3,)]
         @test a.a == [1, 2, 1, 2, 3]
+
+        @test @inferred(flatten([[]])) == []
+        @test @inferred(flatten(Vector{Int}[])) == []
+        @test @inferred(flatten([StructVector(a=[1, 2])][1:0])) == []
+        @test flatten(Any[[]]) == []
+        @test flatten([]) == []
     end
 end
 
