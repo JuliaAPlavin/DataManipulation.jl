@@ -3,6 +3,7 @@ module ArraysExtra
 using DataPipes
 using StructArrays
 using Dictionaries
+using InverseFunctions
 using Reexport
 @reexport using Skipper
 @reexport using SentinelViews
