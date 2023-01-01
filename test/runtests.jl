@@ -28,7 +28,7 @@ end
 end
 
 @testitem "mapset" begin
-    using ArraysExtra: mapset, mapinsert, mapsetview, mapinsertview
+    using DataManipulation: mapset, mapinsert, mapsetview, mapinsertview
     using StructArrays
 
     xs = [(a=1, b=2), (a=3, b=4)]
@@ -83,7 +83,7 @@ end
 end
 
 @testitem "discreterange" begin
-    using ArraysExtra: discreterange
+    using DataManipulation: discreterange
     using AccessorsExtra
     using Dates
     using Unitful
@@ -146,7 +146,7 @@ end
     auv = @inferred(uniqueview(a))::AbstractVector{Int}
     @test auv == au == 1:5
     @test a[parentindices(auv)...] == auv
-    @test auv[ArraysExtra.inverseindices(auv)] == a
+    @test auv[DataManipulation.inverseindices(auv)] == a
 
     auv[1] = 0
     @test a == [0; 2:5; 5:-1:2; 0]
@@ -230,8 +230,8 @@ end
 
 @testitem "_" begin
     import Aqua
-    Aqua.test_all(ArraysExtra; ambiguities=false)
-    Aqua.test_ambiguities(ArraysExtra)
+    Aqua.test_all(DataManipulation; ambiguities=false)
+    Aqua.test_ambiguities(DataManipulation)
 
     import CompatHelperLocal as CHL
     CHL.@check()

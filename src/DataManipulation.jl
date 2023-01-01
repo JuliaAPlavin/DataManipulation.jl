@@ -1,4 +1,4 @@
-module ArraysExtra
+module DataManipulation
 
 using StructArrays
 using Dictionaries
