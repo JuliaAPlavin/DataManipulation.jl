@@ -127,6 +127,19 @@ mapview(f, X) = MappedAny(f, X)
 mapview(f, X::_MTT) = mapview(f ∘ _f(X), parent(X))
 
 
-Base.findfirst(pred, A::MappedArray) = _findfirst(pred, A, inverse(_f(A)))
+Base.findfirst(pred::Function, A::MappedArray) = _findfirst(pred, A, inverse(_f(A)))
 _findfirst(pred, A, ::NoInverse) = Base.@invoke findfirst(pred, A::AbstractArray)
-_findfirst(pred::Union{Base.Fix2{typeof(isequal)}, Base.Fix2{typeof(==)}}, A::_MTT, invf) = findfirst(f.f(invf(f.x)), parent(A))
+_findfirst(pred::Union{Base.Fix2{typeof(isequal)}, Base.Fix2{typeof(==)}}, A::_MTT, invf) = findfirst(pred.f(invf(pred.x)), parent(A))
+
+Base.searchsortedfirst(A::MappedArray, v; kwargs...) = _searchsortedfirst(A, v, inverse(_f(A)); kwargs...)
+_searchsortedfirst(A, v, ::NoInverse; kwargs...) = Base.@invoke searchsortedfirst(A::AbstractArray, v; kwargs...)
+_searchsortedfirst(A, v, invf; rev=false) = searchsortedfirst(parent(A), invf(v); rev=_is_increasing(_f(A)) ? rev : !rev)
+Base.searchsortedlast(A::MappedArray, v; kwargs...) = _searchsortedlast(A, v, inverse(_f(A)); kwargs...)
+_searchsortedlast(A, v, ::NoInverse; kwargs...) = Base.@invoke searchsortedlast(A::AbstractArray, v; kwargs...)
+_searchsortedlast(A, v, invf; rev=false) = searchsortedlast(parent(A), invf(v); rev=_is_increasing(_f(A)) ? rev : !rev)
+
+# Base.findall(interval_d::Base.Fix2{typeof(in), <:Interval}, x::AbstractRange) =
+#     searchsorted_interval(x, interval_d.x; rev=step(x) < zero(step(x)))
+
+# only called for invertible functions: they are either increasing or decreasing
+_is_increasing(f) = f(2) < f(3)

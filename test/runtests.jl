@@ -294,6 +294,23 @@ end
         ma = @inferred mapview(x -> (; x=x + 1), a)
         @test ma.x::MappedArray{Int} == [21, 31, 11, 101]
         @test parent(ma.x) === parent(ma) === a
+
+        @testset "find" begin
+            ma = mapview(@optic(_ * 10), [1, 2, 2, 2, 3, 4])
+            @test findfirst(==(30), ma) == 5
+            @test findfirst(==(35), ma) |> isnothing
+            @test searchsortedfirst(ma, 20) == 2
+            @test searchsortedlast(ma, 20) == 4
+            @test searchsortedfirst(reverse(ma), 20; rev=true) == 3
+            @test searchsortedlast(reverse(ma), 20; rev=true) == 5
+            ma = mapview(@optic(_ * -10), .- [1, 2, 2, 2, 3, 4])
+            @test findfirst(==(30), ma) == 5
+            @test findfirst(==(35), ma) |> isnothing
+            @test searchsortedfirst(ma, 20) == 2
+            @test searchsortedlast(ma, 20) == 4
+            @test searchsortedfirst(reverse(ma), 20; rev=true) == 3
+            @test searchsortedlast(reverse(ma), 20; rev=true) == 5
+        end
     end
 
     @testset "dict" begin
