@@ -80,19 +80,20 @@ function Base.show(io::IO, s::Skip)
 end
 
 
-subtract_pred_type(::Type{T}, ::Type) where {T} = T
-subtract_pred_type(::Type{T}, ::Type{typeof(ismissing)}) where {T} = Base.nonmissingtype(T)
-subtract_pred_type(::Type{T}, ::Type{typeof(isnothing)}) where {T} = Base.nonnothingtype(T)
+# some tricks to make eltype(Skip) tighter when possible
+
+_subtract_pred_type(::Type{T}, ::Type) where {T} = T
+_subtract_pred_type(::Type{T}, ::Type{typeof(ismissing)}) where {T} = Base.nonmissingtype(T)
+_subtract_pred_type(::Type{T}, ::Type{typeof(isnothing)}) where {T} = Base.nonnothingtype(T)
 
 @inline _helper_f(pred, x) = Val(pred(x))
 @inline _can_be(T, P) = Core.Compiler.return_type(_helper_f, Tuple{P, T}) != Val{true}
 @inline _try_reducing_type_union(::Type{T}, ::Type{P}) where {T, P} = _can_be(T, P) ? T : Union{}
 @inline _try_reducing_type_union(T::Union, ::Type{P}) where {P} = Union{_try_reducing_type_union(T.a, P), _try_reducing_type_union(T.b, P)}
 
-
 function _try_reducing_type(::Type{T}, ::Type{P}) where {T, P}
     Tu = _try_reducing_type_union(T, P)
-    Tsub = subtract_pred_type(T, P)    
+    Tsub = _subtract_pred_type(T, P)    
     Treduced = Tu <: Tsub ? Tu : Tsub
     return Treduced <: T ? Treduced : T
 end
