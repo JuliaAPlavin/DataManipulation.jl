@@ -1,5 +1,10 @@
+"""    sortview(X; kws...)
+
+Like `sort(X; kws...)`, but returns a view instead of a copy. """
 sortview(A; kwargs...) = view(A, sortperm(A; kwargs...))
 
+"""    uniqueview([f], X)
+Like `unique([f], X)`, but returns a view instead of a copy. """
 uniqueview(A) = uniqueview(identity, A)
 uniqueview(f::Function, A) = UniqueView(A, groupfind(f, A) |> values |> collect)
 

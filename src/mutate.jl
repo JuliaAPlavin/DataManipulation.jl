@@ -1,6 +1,33 @@
+"""    mapset(X; prop=f, ...)
+
+Set values of `x.prop` to `f(x)` for all elements. Common usage is for modifying table columns.
+
+Equivalent to `map(x -> @set(x.prop = f(x)), X)`, but supports multiple properties.
+
+When `X` is a `StructArray`: uses an optimized approach, keeping all other component untouched. """
 mapset(A; kwargs...) = _mapmerge(A, map, _merge_set; kwargs...)
+
+"""    mapview(X; prop=f, ...)
+
+Insert `x.prop` into each element with the value `f(x)`. Common usage is for adding table columns.
+
+Equivalent to `map(x -> @insert(x.prop = f(x)), X)`, but supports multiple properties.
+
+When `X` is a `StructArray`: uses an optimized approach, keeping all other component untouched. """
 mapinsert(A; kwargs...) = _mapmerge(A, mapview, _merge_insert; kwargs...)
+
+"""    mapsetview(X; prop=f, ...)
+
+Like `mapset`, but returns a view instead of a copy.
+
+When `X` is a `StructArray`: uses an optimized approach, keeping all other component untouched. """
 mapsetview(A; kwargs...) = _mapviewmerge(A, map, _merge_set; kwargs...)
+
+"""    mapinsertview(X; prop=f, ...)
+
+Like `mapinsert`, but returns a view instead of a copy.
+
+When `X` is a `StructArray`: uses an optimized approach, keeping all other component untouched. """
 mapinsertview(A; kwargs...) = _mapviewmerge(A, mapview, _merge_insert; kwargs...)
 
 _mapmerge(A, mapf, mergef; kwargs...) = mapf(a -> mergef(a, map(fx -> fx(a), values(kwargs))), A)
