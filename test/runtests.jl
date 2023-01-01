@@ -1,6 +1,8 @@
 using ArraysExtra
 using StructArrays
 using AxisKeys
+using Dictionaries
+using TypedTables
 using Test
 
 
@@ -109,7 +111,94 @@ end
 # end
 
 @testset "group" begin
-    
+    @testset "basic" begin
+        xs = 3 .* [1, 2, 3, 4, 5]
+        g = @inferred group(isodd, xs)
+        @test g == Dict(false => [6, 12], true => [3, 9, 15])
+        @test isconcretetype(eltype(g))
+        @test eltype(g) <: Pair{Bool, <:SubArray{Int}}
+
+        # ensure we get a copy
+        xs[1] = 123
+        @test g == Dict(false => [6, 12], true => [3, 9, 15])
+
+
+        xs = 3 .* [1, 2, 3, 4, 5]
+        g = @inferred groupview(isodd, xs)
+        @test g == Dict(false => [6, 12], true => [3, 9, 15])
+        @test isconcretetype(eltype(g))
+        @test eltype(g) <: Pair{Bool, <:SubArray{Int}}
+
+        # ensure we get a view
+        xs[1] = 123
+        @test g == Dict(false => [6, 12], true => [123, 9, 15])
+
+
+        xs = 3 .* [1, 2, 3, 4, 5]
+        g = @inferred groupfind(isodd, xs)
+        @test g == Dict(false => [2, 4], true => [1, 3, 5])
+        @test isconcretetype(eltype(g))
+        @test eltype(g) <: Pair{Bool, <:SubArray{Int}}
+    end
+
+    @testset "structarray" begin
+        xs = StructArray(a=3 .* [1, 2, 3, 4, 5])
+        g = @inferred group(x -> isodd(x.a), xs)
+        @test g == Dict(false => [(a=6,), (a=12,)], true => [(a=3,), (a=9,), (a=15,)])
+        @test isconcretetype(eltype(g))
+        @test g[false].a == [6, 12]
+
+        g = @inferred groupview(x -> isodd(x.a), xs)
+        @test g == Dict(false => [(a=6,), (a=12,)], true => [(a=3,), (a=9,), (a=15,)])
+        @test isconcretetype(eltype(g))
+        @test g[false].a == [6, 12]
+    end
+
+    @testset "keyedarray" begin
+        xs = KeyedArray(1:5, a=3 .* [1, 2, 3, 4, 5])
+        g = @inferred group(isodd, xs)
+        @test g == Dict(false => [2, 4], true => [1, 3, 5])
+        @test isconcretetype(eltype(g))
+        @test_broken axiskeys(g[false]) == ([6, 12],)
+        @test_broken g[false](a=6) == 2
+
+        g = @inferred groupview(isodd, xs)
+        @test g == Dict(false => [2, 4], true => [1, 3, 5])
+        @test isconcretetype(eltype(g))
+        @test axiskeys(g[false]) == ([6, 12],)
+        @test g[false](a=6) == 2
+    end
+
+    @testset "typedtable" begin
+        xs = Table(a=3 .* [1, 2, 3, 4, 5])
+        g = @inferred group(x -> isodd(x.a), xs)
+        @test g == Dict(false => [(a=6,), (a=12,)], true => [(a=3,), (a=9,), (a=15,)])
+        @test isconcretetype(eltype(g))
+        @test g[false].a == [6, 12]
+
+        g = @inferred groupview(x -> isodd(x.a), xs)
+        @test g == Dict(false => [(a=6,), (a=12,)], true => [(a=3,), (a=9,), (a=15,)])
+        @test isconcretetype(eltype(g))
+        @test g[false].a == [6, 12]
+    end
+
+    @testset "dictionary" begin
+        Base.similar(d::AbstractDictionary, dims::Base.OneTo) = similar(Vector{valtype(d)}, dims)
+
+        xs = dictionary(3 .* [1, 2, 3, 4, 5] .=> 1:5)
+        g = @inferred group(isodd, xs)
+        @test g == Dict(false => [2, 4], true => [1, 3, 5])
+        @test isconcretetype(eltype(g))
+        @test g[false] == [2, 4]
+
+        # view(dct, range) doesn't work for dictionaries
+        # g = @inferred groupview(isodd, xs)
+        # @test g == Dict(false => [2, 4], true => [1, 3, 5])
+        # @test isconcretetype(eltype(g))
+        # @test g[false] == [2, 4]
+        # xs[6] = 123
+        # @test g == Dict(false => [123, 4], true => [1, 3, 5])
+    end
 end
 
 # @testset "(un)nest" begin
