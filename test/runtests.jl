@@ -27,33 +27,28 @@ end
     @test S"def"(x) == "c"
 end
 
-@testitem "mutate" begin
-    using ArraysExtra.FlexiMaps: MappedArray
+@testitem "mapset" begin
+    using ArraysExtra: mapset, mapinsert, mapsetview, mapinsertview
     using StructArrays
 
-    X = [(a=1, b=(c=2,)), (a=3, b=(c=4,))]
-    @test mutate(x -> (c=x.a^2,), X) == [(a=1, b=(c=2,), c=1), (a=3, b=(c=4,), c=9)]
-    @test mutate(x -> (a=x.a^2,), X) == [(a=1, b=(c=2,)), (a=9, b=(c=4,))]
-    @test mutate(c=x -> x.a^2, X) == [(a=1, b=(c=2,), c=1), (a=3, b=(c=4,), c=9)]
-    @test mutate(c=x -> x.a^2, d=x -> x.a + 1, X) == [(a=1, b=(c=2,), c=1, d=2), (a=3, b=(c=4,), c=9, d=4)]
-    @test mutate(x -> (b=(d=x.a,),), X) == [(a=1, b=(d=1,)), (a=3, b=(d=3,))]
+    xs = [(a=1, b=2), (a=3, b=4)]
+    @test @inferred(mapset(a=x -> x.b^2, xs)) == [(a=4, b=2), (a=16, b=4)]
+    @test @inferred(mapset(a=x -> x.b^2, b=x -> x.a, xs)) == [(a=4, b=1), (a=16, b=3)]
+    @test @inferred(mapinsert(c=x -> x.b^2, xs)) == [(a=1, b=2, c=4), (a=3, b=4, c=16)]
+    @test @inferred(mapinsert(c=x -> x.b^2, d=x -> x.a + x.b, xs)) == [(a=1, b=2, c=4, d=3), (a=3, b=4, c=16, d=7)]
 
-    Y = mutateview(c=x -> x.a^2, X)
-    @test Y == [(a=1, b=(c=2,), c=1), (a=3, b=(c=4,), c=9)]
-    @test @inferred(Y[1]) == (a=1, b=(c=2,), c=1)
+    @test @inferred(mapsetview(a=x -> x.b^2, xs)) == [(a=4, b=2), (a=16, b=4)]
+    @test @inferred(mapsetview(a=x -> x.b^2, b=x -> x.a, xs)) == [(a=4, b=1), (a=16, b=3)]
+    @test @inferred(mapinsertview(c=x -> x.b^2, xs)) == [(a=1, b=2, c=4), (a=3, b=4, c=16)]
+    @test @inferred(mapinsertview(c=x -> x.b^2, d=x -> x.a + x.b, xs)) == [(a=1, b=2, c=4, d=3), (a=3, b=4, c=16, d=7)]
 
-    S = StructArray(X)
-    Sm = mutate(c=x -> x.a^2, S)
-    @test eltype(Sm) == @NamedTuple{a::Int, b::@NamedTuple{c::Int}, c::Int}
-    @test Sm.a === S.a
-    @test Sm.b === S.b
-    @test Sm.c == [1, 9]
-
-    Sm = mutateview(c=x -> x.a^2, S)
-    @test eltype(Sm) == @NamedTuple{a::Int, b::@NamedTuple{c::Int}, c::Int}
-    @test Sm.a === S.a
-    @test Sm.b === S.b
-    @test Sm.c::MappedArray == [1, 9]
+    sa = StructArray(xs)
+    sm = @inferred(mapset(a=x -> x.b^2, sa))
+    @test sm.a == [4, 16]
+    @test sm.b === sa.b
+    sm = @inferred(mapinsert(c=x -> x.b^2, sa))
+    @test sm.b === sa.b
+    @test sm.c == [4, 16]
 end
 
 @testitem "filterview" begin

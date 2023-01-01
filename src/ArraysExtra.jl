@@ -13,7 +13,7 @@ using Reexport
 export
     @S_str,
     findonly, filterfirst, filteronly, uniqueonly,
-    mutate, mutateview,
+    mapset, mapinsert, mapsetview, mapinsertview,
     filterview,
     sortview, uniqueview,
     materialize_views
