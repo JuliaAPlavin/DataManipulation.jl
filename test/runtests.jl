@@ -272,6 +272,17 @@ end
     @test filter(x -> x > 10, sa) == [20]
     @test findmax(sa) == (20, 4)
 
+    @test_throws "is skipped" sa .= .-sa
+    sa .= 2 .* sa
+    @test collect(sa) == [4, 40]
+    @test isequal(a, [missing, -1, 4, 40])
+    sa .= sa .+ sa
+    @test collect(sa) == [8, 80]
+    @test isequal(a, [missing, -1, 8, 80])
+    sa .= (i for i in sa)
+    @test collect(sa) == [8, 80]
+    @test isequal(a, [missing, -1, 8, 80])
+
     @test collect(skipnan([1, NaN, 3])) == [1, 3]
 
     @test @inferred(eltype(skip(ismissing, [1, missing, nothing, 2, 3]))) == Union{Int, Nothing}

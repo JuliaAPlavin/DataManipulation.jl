@@ -15,10 +15,18 @@ Base.eltype(::Type{Skip{P, TX}}) where {P, TX} = _try_reducing_type(eltype(TX), 
 Base.IndexStyle(::Type{<:Skip{P, TX}}) where {P, TX} = Base.IndexStyle(TX)
 Base.eachindex(s::Skip) = Iterators.filter(i -> !_pred(s)(@inbounds parent(s)[i]), eachindex(parent(s)))
 Base.keys(s::Skip) = Iterators.filter(i -> !_pred(s)(@inbounds parent(s)[i]), keys(parent(s)))
+
 Base.@propagate_inbounds function Base.getindex(s::Skip, I...)
     v = parent(s)[I...]
     _pred(s)(v) && throw(MissingException("the value at index $I is skipped"))
     return v
+end
+
+Base.@propagate_inbounds function Base.setindex!(s::Skip, v, I...)
+    oldv = parent(s)[I...]
+    _pred(s)(oldv) && throw(MissingException("existing value at index $I is skipped"))
+    _pred(s)(v) && throw(MissingException("new value to be set at index $I is skipped"))
+    return setindex!(parent(s), v, I...)
 end
 
 function Base.iterate(s::Skip, state...)
@@ -43,6 +51,21 @@ function Base.filter(f, s::Skip)
         end
     end
     y
+end
+
+Base.BroadcastStyle(::Type{<:Skip}) = Broadcast.Style{Skip}()
+Base.BroadcastStyle(::Broadcast.Style{Skip}, ::Broadcast.DefaultArrayStyle) = Broadcast.Style{Skip}()
+Base.BroadcastStyle(::Broadcast.DefaultArrayStyle, ::Broadcast.Style{Skip}) = Broadcast.Style{Skip}()
+Broadcast.materialize!(::Broadcast.Style{Skip}, dest::Skip, bc::Broadcast.Broadcasted) = copyto!(dest, bc)
+function Base.copyto!(dest::Skip, src::Broadcast.Broadcasted)
+    destiter = eachindex(dest)
+    y = iterate(destiter)
+    for x in src
+        isnothing(y) && throw(ArgumentError("destination has fewer elements than required"))
+        @inbounds dest[y[1]] = x
+        y = iterate(destiter, y[2])
+    end
+    return dest
 end
 
 Base.getproperty(A::Skip, p::Symbol) = mapview(Accessors.PropertyLens(p), A)
