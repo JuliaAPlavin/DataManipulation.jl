@@ -281,6 +281,7 @@ end
 
     a = StructArray(a=[missing, -1, 2, 3])
     sa = @inferred skip(x -> ismissing(x.a) || x.a < 0, a)
+    @test collect(sa.a) == [2, 3]
     @test collect(sa).a == [2, 3]
 
     a = KeyedArray([missing, -1, 2, 3], b=[1, 2, 3, 4])

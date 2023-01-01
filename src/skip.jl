@@ -6,17 +6,18 @@ struct Skip{P, TX}
     parent::TX
 end
 
-Base.parent(s::Skip) = s.parent
+_pred(s::Skip) = getfield(s, :pred)
+Base.parent(s::Skip) = getfield(s, :parent)
 Base.IteratorSize(::Type{<:Skip}) = Base.SizeUnknown()
 Base.IteratorEltype(::Type{<:Skip{P, TX}}) where {P, TX} = Base.IteratorEltype(TX)
 Base.eltype(::Type{Skip{P, TX}}) where {P, TX} = _try_reducing_type(eltype(TX), P)
 
 Base.IndexStyle(::Type{<:Skip{P, TX}}) where {P, TX} = Base.IndexStyle(TX)
-Base.eachindex(s::Skip) = Iterators.filter(i -> !s.pred(@inbounds parent(s)[i]), eachindex(parent(s)))
-Base.keys(s::Skip) = Iterators.filter(i -> !s.pred(@inbounds parent(s)[i]), keys(parent(s)))
+Base.eachindex(s::Skip) = Iterators.filter(i -> !_pred(s)(@inbounds parent(s)[i]), eachindex(parent(s)))
+Base.keys(s::Skip) = Iterators.filter(i -> !_pred(s)(@inbounds parent(s)[i]), keys(parent(s)))
 Base.@propagate_inbounds function Base.getindex(s::Skip, I...)
     v = parent(s)[I...]
-    s.pred(v) && throw(MissingException("the value at index $I is skipped"))
+    _pred(s)(v) && throw(MissingException("the value at index $I is skipped"))
     return v
 end
 
@@ -24,7 +25,7 @@ function Base.iterate(s::Skip, state...)
     it = iterate(parent(s), state...)
     isnothing(it) && return nothing
     item, state = it
-    while s.pred(item)
+    while _pred(s)(item)
         it = iterate(parent(s), state)
         isnothing(it) && return nothing
         item, state = it
@@ -37,16 +38,19 @@ Base.collect(s::Skip) = filter(Returns(true), s)
 function Base.filter(f, s::Skip)
     y = similar(parent(s), eltype(s), 0)
     for xi in parent(s)
-        if !s.pred(xi) && f(xi)
+        if !_pred(s)(xi) && f(xi)
             push!(y, xi)
         end
     end
     y
 end
 
+Base.getproperty(A::Skip, p::Symbol) = mapview(Accessors.PropertyLens(p), A)
+Base.getproperty(A::Skip, p) = mapview(Accessors.PropertyLens(p), A)
+
 function Base.show(io::IO, s::Skip)
     print(io, "skip(")
-    show(io, s.pred)
+    show(io, _pred(s))
     print(io, ", ")
     show(io, parent(s))
     print(io, ')')
