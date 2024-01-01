@@ -93,9 +93,12 @@ end
 
     @test discreterange(log, 10, 10^5, length=5)::Vector{Int} == [10, 100, 1000, 10000, 100000]
     @test discreterange(log, 2, 10, length=5)::Vector{Int} == [2, 3, 4, 7, 10]
-    @test discreterange(@optic(log(ustrip(u"m", _))), 2u"m", 10u"m", length=5) == [2, 3, 4, 7, 10]u"m"
-    @test discreterange(@optic(log(ustrip(u"m", _))), 200u"cm", 10u"m", length=5) == [2, 3, 4, 7, 10]u"m"
-    @test_broken discreterange(@optic(log(_ / Second(1))), Second(2), Second(10), length=5)
+    @test discreterange(log, 2, 10, length=5, mul=1.)::Vector{Float64} == [2, 3, 4, 7, 10]
+    @test discreterange(log, 2, 10, length=5, mul=0.1)::Vector{Float64} == [2, 3, 4.5, 6.7, 10]
+    @test discreterange(@o(log(ustrip(u"m", _))), 2u"m", 10u"m", length=5) == [2, 3, 4, 7, 10]u"m"
+    @test_throws Exception discreterange(@o(log(ustrip(u"m", _))), 200u"cm", 10u"m", length=5) == [2, 3, 4, 7, 10]u"m"
+    @test discreterange(@o(log(ustrip(u"m", _))), 200u"cm", 10u"m", length=5, mul=1u"m") == [2, 3, 4, 7, 10]u"m"
+    @test_broken discreterange(@o(log(_ / Second(1))), Second(2), Second(10), length=5)
 
     @testset for a in [1, 10, 100, 1000, 10^10], b in [1, 10, 100, 1000, 10^10], len in [2:100; 12345]
         a >= b && continue
@@ -109,6 +112,9 @@ end
         @test issorted(rng, rev=a > b)
         @test minimum(rng) == min(a, b)
         @test maximum(rng) == max(a, b)
+        @test discreterange(log, a, b, length=len, mul=1)::Vector{Int} == rng
+        @test discreterange(log, a, b, length=len, mul=1.0)::Vector{Float64} == rng
+        @test 10 .* discreterange(log, 0.1*a, 0.1*b, length=len, mul=0.1)::Vector{Float64} ≈ rng
     end
 end
 

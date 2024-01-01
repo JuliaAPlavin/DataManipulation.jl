@@ -17,6 +17,7 @@ export
     materialize_views, collectview,
     nest, @sr_str, @ss_str,
     shift_range,
+    discreterange,
     @o,
     rev
 
