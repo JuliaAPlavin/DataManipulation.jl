@@ -14,28 +14,30 @@ end
 
 
 @generated function nest(x::NamedTuple{KS}, ::StrRe{SR}) where {KS, SR}
-    regex = Regex(string(SR), Base.DEFAULT_COMPILER_OPTS | Base.PCRE.ANCHORED | Base.PCRE.ENDANCHORED, Base.DEFAULT_MATCH_OPTS)
-    paths = map(KS) do k
-        m = match(regex, string(k))
-        isnothing(m) ?
-            [k] :
-            @p m |> pairs |> collect |> filter(!isnothing(last(_))) |> sort |> map(last) |> map(Symbol)
+    regex = _anchored_regex(SR)
+    _nest_code(KS, regex) do m
+        @p m |> pairs |> collect |> filter(!isnothing(last(_))) |> sort |> map(last) |> map(Symbol)
     end
-    allunique(paths) || error("Target paths not unique: $paths")
-    npairs = paths_to_nested_pairs(paths, KS)
-    nested_pairs_to_ntexpr(npairs)
 end
 
 @generated function nest(x::NamedTuple{KS}, ::Pair{StrRe{SR}, SS}) where {KS, SR, SS <: Tuple}
-    regex = Regex(string(SR), Base.DEFAULT_COMPILER_OPTS | Base.PCRE.ANCHORED | Base.PCRE.ENDANCHORED, Base.DEFAULT_MATCH_OPTS)
+    regex = _anchored_regex(SR)
     extract_sub(::Type{StrSub{S}}) where {S} = SubstitutionString(string(S))
     subs = map(extract_sub, SS.types)
+    _nest_code(KS, regex) do m
+        @p subs |> map(sub -> replace(m.match, regex => sub)) |> map(Symbol)
+    end
+end
+
+_anchored_regex(SR::Symbol) = Regex(string(SR), Base.DEFAULT_COMPILER_OPTS | Base.PCRE.ANCHORED | Base.PCRE.ENDANCHORED, Base.DEFAULT_MATCH_OPTS)
+
+function _nest_code(func, KS, regex)
     paths = map(KS) do k
         ks = string(k)
         m = match(regex, ks)
-        isnothing(m) ?
-            [k] :
-            @p subs |> map(sub -> replace(ks, regex => sub)) |> map(Symbol)
+        isnothing(m) && return [k]
+        @assert m.match == ks
+        return func(m)
     end
     allunique(paths) || error("Target paths not unique: $paths")
     npairs = paths_to_nested_pairs(paths, KS)
