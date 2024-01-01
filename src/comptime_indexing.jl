@@ -22,6 +22,13 @@ end
 #     return :( NamedTuple{$nss}(($([:(nt.$ns) for ns in ns]...),)) )
 # end
 
+@generated function Base.setindex(nt::NamedTuple{NS}, val::NamedTuple{VNS}, SR::StaticRegex) where {NS, VNS}
+    regex = unstatic(SR)
+    ns = filter(n -> occursin(regex, String(n)), NS)
+    @assert VNS == ns
+    return :(merge(nt, val))
+end
+
 
 Accessors.delete(nt::NamedTuple, o::IndexLens{<:Tuple{StaticRegex, Vararg{Any}}}) = _delete(nt, o.indices...)
 

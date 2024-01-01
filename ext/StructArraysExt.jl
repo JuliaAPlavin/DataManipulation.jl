@@ -9,6 +9,12 @@ Base.getindex(A::StructArray, p::Union{StaticRegex, Pair{<:StaticRegex}}, args..
         nt[p, args...]
     end
 
+Base.setindex(A::StructArray, val::StructArray, p::Union{StaticRegex, Pair{<:StaticRegex}}, args...) =
+    @modify(StructArrays.components(A)) do nt
+        Base.setindex(nt, StructArrays.components(val), p, args...)
+    end
+Accessors.setindex(A::StructArray, val, p::Union{StaticRegex, Pair{<:StaticRegex}}, args...) = Base.setindex(A, val, p, args...)
+
 Accessors.delete(A::StructArray, o::IndexLens{<:Tuple{StaticRegex, Vararg{Any}}}) = 
     @modify(StructArrays.components(A)) do nt
         delete(nt, o)

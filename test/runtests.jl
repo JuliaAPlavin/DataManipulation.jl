@@ -222,21 +222,26 @@ end
 @testitem "comptime indexing" begin
     using StructArrays
 
-    nt = (a_1=1, a_2=10, b_1=100)
-    @test nt[sr"a_\d"] === (a_1 = 1, a_2 = 10)
-    @test nt[sr"a_(\d)" => ss"xxx_\1_xxx"] === (xxx_1_xxx = 1, xxx_2_xxx = 10)
-    @test nt[sr"a_(\d)" => ss"x_\1", sr"b.*"] === (x_1 = 1, x_2 = 10, b_1 = 100)
+    nt = (a_1=1, a_2=10., b_1=100)
+    @test nt[sr"a_\d"] === (a_1 = 1, a_2 = 10.)
+    @test nt[sr"a_(\d)" => ss"xxx_\1_xxx"] === (xxx_1_xxx = 1, xxx_2_xxx = 10.)
+    @test nt[sr"a_(\d)" => ss"x_\1", sr"b.*"] === (x_1 = 1, x_2 = 10., b_1 = 100)
     @test_broken (nt[sr"a_(\d)" => (x -> x), sr"b.*"]; true)  # cannot avoid "method too new" error
 
-    A = StructArray(a_1=[1], a_2=[10], b_1=[100])
+    A = StructArray(a_1=[1], a_2=[10.], b_1=[100])
     B = A[sr"a_\d"]
-    @test B == StructArray(a_1=[1], a_2=[10])
+    @test B == StructArray(a_1=[1], a_2=[10.])
     @test B.a_1 === A.a_1
 
     @test @delete(nt[sr"a_\d"]) === (b_1 = 100,)
     B = @delete A[sr"a_\d"]
     @test B == StructArray(b_1=[100])
     @test B.b_1 === A.b_1
+
+    @test @modify(x -> x + 1, nt[sr"a_\d"] |> Elements()) === (a_1 = 2, a_2 = 11., b_1 = 100)
+    @test (@inferred modify(x -> x + 1, nt, @optic _[sr"a_\d"] |> Elements())) === (a_1 = 2, a_2 = 11., b_1 = 100)
+
+    @test (@inferred modify(x -> x .+ ndims(x), A, @optic _[sr"a_\d"] |> Properties())) == StructArray(a_1=[2], a_2=[11.], b_1=[100])
 end
 
 @testitem "nest" begin
