@@ -9,6 +9,10 @@ using TestItemRunner
     @test_throws "no element" findonly(isodd, [2, 4])
 
     @test @inferred(findonly(iseven, (11, 12))) == 2
+
+    @test @inferred(findonly(iseven, (a=1, b=2))) == :b
+    @test @inferred(findonly(iseven, (a=1, b=2, c=3))) == :b
+    @test_throws "multiple elements" findonly(iseven, (a=1, b=2, c=4))
 end
 
 @testitem "filteronly" begin

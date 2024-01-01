@@ -8,6 +8,9 @@ function findonly(pred, A)
     return ix
 end
 
+findonly(pred, A::NamedTuple{KS}) where {KS} = KS[findonly(pred, Tuple(A))]
+
+
 """    filterfirst(pred, X)
 
 More efficient `first(filter(pred, X))`. """
