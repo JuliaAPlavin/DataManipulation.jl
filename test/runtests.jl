@@ -217,6 +217,12 @@ end
         (xa=(val=(x=1, y="2", z_z=3),), b=:z)
     @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" => (cs"\2_\1",) )) ===
         (x_a=1, y_a="2", z_z_a=3, b=:z)
+
+
+    @test_throws "not unique" @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a).+" )) ===
+        (a=(x=1, y="2", z_z=3), b=:z)
+    @test_throws "not unique" @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" => (cs"xabc",) )) ===
+        (xabc=(val_x=1, val_y="2", val_z_z=3), b=:z)
 end
 
 

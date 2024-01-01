@@ -21,6 +21,7 @@ end
             [k] :
             @p m |> pairs |> collect |> filter(!isnothing(last(_))) |> sort |> map(last) |> map(Symbol)
     end
+    allunique(paths) || error("Target paths not unique: $paths")
     npairs = paths_to_nested_pairs(paths, KS)
     nested_pairs_to_ntexpr(npairs)
 end
@@ -36,6 +37,7 @@ end
             [k] :
             @p subs |> map(sub -> replace(ks, regex => sub)) |> map(Symbol)
     end
+    allunique(paths) || error("Target paths not unique: $paths")
     npairs = paths_to_nested_pairs(paths, KS)
     nested_pairs_to_ntexpr(npairs)
 end
@@ -53,6 +55,7 @@ function paths_to_nested_pairs(paths, values)
     if length(paths) == 1 && only(paths) == []
         return only(values)
     end
+    @assert !any(isempty, paths)
     @p let
         zip(paths, values)
         group(_[1][1])
