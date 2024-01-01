@@ -4,4 +4,5 @@ macro S_str(str)
     :(Symbol($str_interpolated))
 end
 
+# XXX: piracy
 (name::Symbol)(x) = getproperty(x, name)

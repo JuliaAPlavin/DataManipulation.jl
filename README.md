@@ -1,17 +1,30 @@
 # DataManipulation.jl
 
-General utilities for conveniently manipulating tabular, quasi-tabular, and non-tabular datasets.
+General and composable utilities for manipulating tabular, quasi-tabular, and non-tabular datasets.
 
-![](https://img.shields.io/badge/motivation-why%3F-brightgreen) 
-The goal of `DataManipulation` is to extend the coverage of common data processing functionality on top of base Julia. This package provides more general mapping over datasets, grouping, selecting, reshaping and so on.
+![](https://img.shields.io/badge/motivation-why%3F-brightgreen) Base Julia provides the most foundational building blocks for data processing, such as `map` and `filter` functions. The goal of `DataManipulation` is to extend common data processing functionality on top of that. This package provides more general mapping over datasets, grouping, selecting, reshaping and so on.
 
-`DataManipulation` handles and processes basic data structures already familiar to Julia users and doesn't require switching to custom specialized dataset implementation. All functions stay composable and support a variety of datasets such as arrays, dicts, many table types.
+`DataManipulation` handles basic data structures already familiar to Julia users and doesn't require switching to custom specialized dataset types. All functions aim to stay composable and support datasets represented as Julia collections: arrays, dictionaries, tuples, many `Tables` types, ... .
 
-`DataManipulation` functionality consists of two major parts.
-- Reexports from focused companion packages: `DataPipes`, `FlexiMaps`, `FlexiGroups`, and `Skipper`. See their docs for details on individual functions. Also, currently we reexport `Accessors`, but this may change in the future.
-- Functions defined in `DataManipulation` itself: they do not clearly belong to a narrower-scope package, or have not been split out yet. See [docs and usage examples ![](https://img.shields.io/badge/docs-examples-brightgreen?logo=julia)](https://aplavin.github.io/AccessorsExtra.jl/examples/notebook.html).
+*Note* This package is intended primarily for interactive usage: load `DataManipulation` and get access to a wide range of data processing tools. Other packages should prefer depending on individual packages listed below, when possible. Nevertheless, `DataManipulation` follows semver and is well-tested.
 
-Additionally, `FlexiJoins` is considered a companion package with relevant goals and API. For now it's somewhat heavy in terms of dependencies and isn't included in `DataManipulation`, but can be added in the future.
+![](https://img.shields.io/badge/components-what's%20inside%3F-brightgreen) `DataManipulation` functionality consists of two major parts.
+- Reexports from companion packages, each focused on a single area. These packages are designed so that they work together nicely and provide consistent and uniform interfaces:
+    - [DataPipes.jl](https://gitlab.com/aplavin/DataPipes.jl): boilerplate-free piping for data manipulation
+    - [FlexiMaps.jl](https://gitlab.com/aplavin/FlexiMaps.jl): functions such as `flatmap`, `filtermap`, and `mapview`, extending the all-familiar `map`
+    - [FlexiGroups.jl](https://gitlab.com/aplavin/FlexiGroups.jl): group data by arbitrary keys & more
+    - [Skipper.jl](https://gitlab.com/aplavin/Skipper.jl): `skip(predicate, collection)`, a generalization of `skipmissing`
+    - [Accessors.jl](https://github.com/JuliaObjects/Accessors.jl): modify nested data structures conveniently with optics
+
+  See the docs of these packages for more details.
+
+  Additionally, [FlexiJoins.jl](https://gitlab.com/aplavin/FlexiJoins.jl) is considered a companion package with relevant goals and compatible API. For now it's somewhat heavy in terms of dependencies and isn't included in `DataManipulation`, but can be added in the future.
+
+- Functions defined in `DataManipulation` itself: they do not clearly belong to a narrower-scope package, or just have not been split out yet. See the docstrings for details.
+  - `findonly`, `filteronly`, `filterfirst`, `uniqueonly`: functions with the semantics of corresponding Base function combinations, but more efficient and naturally support `Accessors.set`.
+  - `sortview`, `uniqueview`, `collectview`: non-copying versions of corresponding Base functions.
+  - zero-cost property selection, indexing, and nesting by regex: `sr"regex"` literal, `nest` function
+  - And more: `discreterange`, `shift_range`, `rev`
 
 
 # Featured example
