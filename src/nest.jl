@@ -29,6 +29,11 @@ end
     end
 end
 
+nest(x, rs...) =
+    foldl(rs; init=x) do x, r
+        nest(x, r)
+    end
+
 _anchored_regex(SR::Symbol) = Regex(string(SR), Base.DEFAULT_COMPILER_OPTS | Base.PCRE.ANCHORED | Base.PCRE.ENDANCHORED, Base.DEFAULT_MATCH_OPTS)
 
 function _nest_code(func, KS, regex)

@@ -218,6 +218,11 @@ end
     @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" => (cs"\2_\1",) )) ===
         (x_a=1, y_a="2", z_z_a=3, b=:z)
 
+    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b_1=:z, b_2=5), cr"(a)_(\w+)", cr"(b)_(\d)" => (cs"\1", cs"i\2") )) ===
+        (a=(x=1, y="2", z_z=3), b=(i1=:z, i2=5))
+    @test_broken @inferred(nest( (a_a=1, a_b=2, b=3), cr"(a)_(\w)", cr"(\w)" => (cs"xx", cs"\1") )) ===
+        (a=(a=1, b=2), xx=(b=3,))
+
 
     @test_throws "not unique" @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a).+" )) ===
         (a=(x=1, y="2", z_z=3), b=:z)
