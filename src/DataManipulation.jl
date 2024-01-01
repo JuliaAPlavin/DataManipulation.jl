@@ -17,12 +17,14 @@ export
     mapset, mapinsert, mapinsert⁻, mapsetview, mapinsertview,
     filterview,
     sortview, uniqueview,
-    materialize_views, collectview
+    materialize_views, collectview,
+    nest, @cr_str
 
 
 include("symbols.jl")
 include("simplefuncs.jl")
 include("views.jl")
+include("nest.jl")
 include("mutate.jl")
 include("filterview.jl")
 include("uniqueview.jl")

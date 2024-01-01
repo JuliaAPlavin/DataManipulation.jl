@@ -193,6 +193,14 @@ end
     @test collectview(group(isodd, 3 .* [1, 2, 3, 4, 5]))::Vector{<:SubArray{Int}} == [[3, 9, 15], [6, 12]]
 end
 
+@testitem "nest" begin
+    @test nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" ) == (a=(x=1, y="2", z_z=3), b=:z)
+    @test nest( (b=:z,), cr"(a)_(\w+)" ) == (b=:z,)
+    @test nest( (x_a=1, y_a="2", z_z_a=3, b=:z), cr"(?<y>\w+)_(?<x>a)" ) == (a=(x=1, y="2", z_z=3), b=:z)
+    @test nest( (x_a=1, y_a="2", z_z_a=3, b_aa=1, b_a="xxx"), cr"(?<y>\w+)_(?<x>a)|(b)_(\w+)" ) == (a=(x=1, y="2", z_z=3, b="xxx"), b=(aa=1,))
+    @test nest( (x_a=1, y_a="2", z_z_a=3, b_aa=1, b_a="xxx"), cr"(b)_(\w+)|(?<y>\w+)_(?<x>a)" ) == (a=(x=1, y="2", z_z=3), b=(aa=1, a="xxx"))
+end
+
 
 # @testitem "(un)nest" begin
 #     @test @inferred(unnest((a=(x=1, y="2"), b=:z))) === (a_x=1, a_y="2", b=:z)
