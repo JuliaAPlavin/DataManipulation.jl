@@ -108,6 +108,18 @@ end
     @test shift_range(-2, 1..2 => 20..30; clamp=true) == 20
 end
 
+@testitem "rev" begin
+    @testset for A in (
+        rand(Int, 5),
+        string.(rand(Int, 5)),
+        [1., NaN, 0.],
+        Any[10, 1.0]
+    )
+        @test isequal(sort(A; rev=true), sort(A; by=rev))
+        @test isequal(sort(A; rev=true), sort(A; by=x -> (rev(x^1), x)))
+    end
+end
+
 @testitem "interactions" begin
     using Dictionaries
     using StructArrays

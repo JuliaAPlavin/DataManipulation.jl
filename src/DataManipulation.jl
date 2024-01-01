@@ -15,7 +15,8 @@ export
     sortview, uniqueview,
     materialize_views, collectview,
     nest, @cr_str, @cs_str,
-    shift_range
+    shift_range,
+    rev
 
 
 include("symbols.jl")
@@ -32,6 +33,13 @@ include("discreterange.jl")
 Linearly transform `x` from range `a..b` to `A..B`.
 """
 function shift_range end
+
+
+struct rev{T}
+    val::T
+end
+
+Base.isless(a::rev, b::rev) = isless(b.val, a.val)
 
 
 # some interactions: include type piracy, but this cannot be put in upstream packages
