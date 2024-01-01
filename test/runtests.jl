@@ -89,6 +89,7 @@ end
     using DataManipulation: discreterange
     using AccessorsExtra
     using Dates
+    using DateFormats
     using Unitful
 
     @test discreterange(log, 10, 10^5, length=5)::Vector{Int} == [10, 100, 1000, 10000, 100000]
@@ -98,7 +99,8 @@ end
     @test discreterange(@o(log(ustrip(u"m", _))), 2u"m", 10u"m", length=5) == [2, 3, 4, 7, 10]u"m"
     @test_throws Exception discreterange(@o(log(ustrip(u"m", _))), 200u"cm", 10u"m", length=5) == [2, 3, 4, 7, 10]u"m"
     @test discreterange(@o(log(ustrip(u"m", _))), 200u"cm", 10u"m", length=5, mul=1u"m") == [2, 3, 4, 7, 10]u"m"
-    @test_broken discreterange(@o(log(_ / Second(1))), Second(2), Second(10), length=5)
+    @test_broken (discreterange(@o(log(_ / Second(1))), Second(2), Second(10), length=5); true)
+    @test discreterange(@o(log(_ /ₜ Second(1))), Second(2), Second(10), length=5) == [Second(2), Second(3), Second(4), Second(7), Second(10)]
 
     @testset for a in [1, 10, 100, 1000, 10^10], b in [1, 10, 100, 1000, 10^10], len in [2:100; 12345]
         a >= b && continue
