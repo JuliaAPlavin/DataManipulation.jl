@@ -3,6 +3,7 @@ module DataManipulation
 using Reexport
 using InverseFunctions
 @reexport using Accessors
+using AccessorsExtra  # for values()
 @reexport using DataPipes
 @reexport using Skipper
 @reexport using FlexiGroups

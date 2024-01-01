@@ -5,6 +5,7 @@ version = "0.1.10"
 
 [deps]
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
+AccessorsExtra = "33016aad-b69d-45be-9359-82a41f556fd4"
 DataPipes = "02685ad9-2d12-40c3-9f73-c6aeda6a7ff5"
 FlexiGroups = "1e56b746-2900-429a-8028-5ec1f00612ec"
 FlexiMaps = "6394faf6-06db-4fa8-b750-35ccc60383f7"
@@ -24,6 +25,7 @@ StructArraysExt = "StructArrays"
 
 [compat]
 Accessors = "0.1.22"
+AccessorsExtra = "0.1.35"
 DataPipes = "0.3.0"
 Dictionaries = "0.3.24"
 FlexiGroups = "0.1.3"
