@@ -13,12 +13,12 @@ end
 
 @testitem "filteronly" begin
     @test @inferred(filteronly(iseven, [11, 12])) == 12
-    @test set([11, 12], @optic(filteronly(iseven, _)), 2) == [11, 2]
-    @test delete([11, 12], @optic(filteronly(iseven, _))) == [11]
+    @test set([11, 12], @o(filteronly(iseven, _)), 2) == [11, 2]
+    @test delete([11, 12], @o(filteronly(iseven, _))) == [11]
 
     @test @inferred(filteronly(iseven, (11, 12))) == 12
-    @test set((11, 12), @optic(filteronly(iseven, _)), 2) == (11, 2)
-    @test delete((11, 12), @optic(filteronly(iseven, _))) == (11,)
+    @test set((11, 12), @o(filteronly(iseven, _)), 2) == (11, 2)
+    @test delete((11, 12), @o(filteronly(iseven, _))) == (11,)
 
     @test_throws "multiple elements" filteronly(isodd, [1, 2, 3])
     @test_throws "is empty" filteronly(isodd, [2, 4])
@@ -26,13 +26,13 @@ end
 
 @testitem "filterfirst" begin
     @test @inferred(filterfirst(iseven, [11, 12, 14])) == 12
-    @test set([11, 12, 14], @optic(filterfirst(iseven, _)), 2) == [11, 2, 14]
-    @test delete([11, 12, 14], @optic(filterfirst(iseven, _))) == [11, 14]
+    @test set([11, 12, 14], @o(filterfirst(iseven, _)), 2) == [11, 2, 14]
+    @test delete([11, 12, 14], @o(filterfirst(iseven, _))) == [11, 14]
     @test_throws "must be non-empty" filterfirst(isodd, [2, 4])
 
     @test @inferred(filterfirst(iseven, (11, 12, 14))) == 12
-    @test set((11, 12, 14), @optic(filterfirst(iseven, _)), 2) == (11, 2, 14)
-    @test delete((11, 12, 14), @optic(filterfirst(iseven, _))) == (11, 14)
+    @test set((11, 12, 14), @o(filterfirst(iseven, _)), 2) == (11, 2, 14)
+    @test delete((11, 12, 14), @o(filterfirst(iseven, _))) == (11, 14)
 end
 
 @testitem "uniqueonly" begin
@@ -65,8 +65,8 @@ end
     @test @inferred(mapinsert(c=x -> x.b^2, xs)) == [(a=1, b=2, c=4), (a=3, b=4, c=16)]
     @test @inferred(mapinsert(c=x -> x.b^2, d=x -> x.a + x.b, xs)) == [(a=1, b=2, c=4, d=3), (a=3, b=4, c=16, d=7)]
 
-    @test mapinsert⁻(c=@optic(_.b^2), xs) == [(a=1, c=4), (a=3, c=16)]
-    @test mapinsert⁻(c=@optic(_.b^2), d=@optic(_.b), xs) == [(a=1, c=4, d=2), (a=3, c=16, d=4)]
+    @test mapinsert⁻(c=@o(_.b^2), xs) == [(a=1, c=4), (a=3, c=16)]
+    @test mapinsert⁻(c=@o(_.b^2), d=@o(_.b), xs) == [(a=1, c=4, d=2), (a=3, c=16, d=4)]
 
     @test @inferred(mapsetview(a=x -> x.b^2, xs)) == [(a=4, b=2), (a=16, b=4)]
     @test @inferred(mapsetview(a=x -> x.b^2, b=x -> x.a, xs)) == [(a=4, b=1), (a=16, b=3)]
@@ -80,7 +80,7 @@ end
     sm = @inferred(mapinsert(c=x -> x.b^2, sa))
     @test sm.b === sa.b
     @test sm.c == [4, 16]
-    sm = @inferred mapinsert⁻(c=@optic(_.b^2), sa)
+    sm = @inferred mapinsert⁻(c=@o(_.b^2), sa)
     @test sm.a === sa.a
     @test sm.c == [4, 16]
 end
@@ -213,7 +213,7 @@ end
 
         cnt = Ref(0)
         f(x) = (cnt[] += 1; 2x)
-        @test modify(f, [1:5; 1:10], @optic(uf(_) |> Elements())) == [2:2:10; 2:2:20]
+        @test modify(f, [1:5; 1:10], @o(uf(_) |> Elements())) == [2:2:10; 2:2:20]
         @test cnt[] == 10
     end
 end
@@ -339,10 +339,10 @@ end
 #     # @test vcat_data(X, Y, fields=intersect)
 #     # @test vcat_data(X, Y, fields=union)
 #     @test vcat_data(X, Y) == [(a=1, b=2), (a=2, b=3), (a=2, b=1)]
-#     @test vcat_data(X, Y; source=@optic(_.src)) == [(a=1, b=2, src=1), (a=2, b=3, src=1), (a=2, b=1, src=2)]
-#     @test reduce(vcat_data, (X, Y); source=@optic(_.src)) == [(a=1, b=2, src=1), (a=2, b=3, src=1), (a=2, b=1, src=2)]
-#     @test reduce(vcat_data, (; X, Y); source=@optic(_.src)) == [(a=1, b=2, src=:X), (a=2, b=3, src=:X), (a=2, b=1, src=:Y)]
-#     @test reduce(vcat_data, Dict("X" => X, "Y" => Y); source=@optic(_.src)) |> sort == [(a=1, b=2, src="X"), (a=2, b=3, src="X"), (a=2, b=1, src="Y")] |> sort
+#     @test vcat_data(X, Y; source=@o(_.src)) == [(a=1, b=2, src=1), (a=2, b=3, src=1), (a=2, b=1, src=2)]
+#     @test reduce(vcat_data, (X, Y); source=@o(_.src)) == [(a=1, b=2, src=1), (a=2, b=3, src=1), (a=2, b=1, src=2)]
+#     @test reduce(vcat_data, (; X, Y); source=@o(_.src)) == [(a=1, b=2, src=:X), (a=2, b=3, src=:X), (a=2, b=1, src=:Y)]
+#     @test reduce(vcat_data, Dict("X" => X, "Y" => Y); source=@o(_.src)) |> sort == [(a=1, b=2, src="X"), (a=2, b=3, src="X"), (a=2, b=1, src="Y")] |> sort
 # end
 
 @testitem "_" begin
