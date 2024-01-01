@@ -1,8 +1,8 @@
 module DataManipulation
 
-using InverseFunctions
-using Accessors
 using Reexport
+using InverseFunctions
+@reexport using Accessors
 @reexport using DataPipes
 @reexport using Skipper
 @reexport using FlexiGroups
