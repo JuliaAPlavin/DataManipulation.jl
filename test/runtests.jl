@@ -167,11 +167,15 @@ end
 end
 
 @testitem "sortview" begin
+    using Accessors
+
     a = [1:5; 5:-1:1]
     as = @inferred sortview(a)
     @test as == [1, 1, 2, 2, 3, 3, 4, 4, 5, 5]
     as[4] = 0
     @test a == [1, 2, 3, 4, 5, 5, 4, 3, 0, 1]
+    @test set([5, 1, 4, 2, 3], sortview, 10 .* (1:5)) == [50, 10, 40, 20, 30]
+    @test modify(cumsum, [4, 1, 4, 2, 3], sortview) == [10, 1, 14, 3, 6]
 end
 
 @testitem "uniqueview" begin

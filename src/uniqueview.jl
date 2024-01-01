@@ -35,6 +35,12 @@ Base.@propagate_inbounds Base.getindex(A::UniqueView, I::Int) = parent(A)[first(
 Base.@propagate_inbounds Base.setindex!(A::UniqueView, v, I::Int) = (parent(A)[A.groupedindices[I]] .= v; A)
 
 
+Accessors.set(obj, ::typeof(sortview), val) = @set obj[sortperm(obj)] = val
+function Accessors.modify(f, obj, o::typeof(sortview))
+    sv = o(obj)
+    @set obj[parentindices(sv)...] = f(sv)
+end
+
 function Accessors.set(obj, ::typeof(uniqueview), val)
     IXs = inverseindices(uniqueview(obj))
     setall(obj, Elements(), @views val[IXs])
