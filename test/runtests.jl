@@ -196,6 +196,8 @@ end
 @testitem "nest" begin
     @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" )) ===
         (a=(x=1, y="2", z_z=3), b=:z)
+    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)(?:_(\w+))" )) ===
+        (a=(x=1, y="2", z_z=3), b=:z)
     @test @inferred(nest( (b=:z,), cr"(a)_(\w+)" )) ===
         (b=:z,)
     @test @inferred(nest( (x_a=1, y_a="2", z_z_a=3, b=:z), cr"(?<y>\w+)_(?<x>a)" )) ===
@@ -207,6 +209,10 @@ end
 
     @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" => (cs"xabc", cs"val_\2") )) ===
         (xabc=(val_x=1, val_y="2", val_z_z=3), b=:z)
+    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)(?:_(\w+))" => (cs"xabc", cs"val_\2") )) ===
+        (xabc=(val_x=1, val_y="2", val_z_z=3), b=:z)
+    @test @inferred(nest( (a=0, a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)(?:_(\w+))?" => (cs"xabc", cs"val_\2") )) ===
+        (xabc=(val_=0, val_x=1, val_y="2", val_z_z=3), b=:z)
     @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" => (cs"x\1", cs"val", cs"\2") )) ===
         (xa=(val=(x=1, y="2", z_z=3),), b=:z)
     @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" => (cs"\2_\1",) )) ===
