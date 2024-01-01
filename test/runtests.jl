@@ -9,6 +9,7 @@ using TestItemRunner
     @test_throws "no element" findonly(isodd, [2, 4])
 
     @test @inferred(filteronly(iseven, [11, 12])) == 12
+    @test set([11, 12], @optic(filteronly(iseven, _)), 2) == [11, 2]
     @test_throws "multiple elements" filteronly(isodd, [1, 2, 3])
     @test_throws "is empty" filteronly(isodd, [2, 4])
 
@@ -16,6 +17,7 @@ using TestItemRunner
     @test_throws "must be non-empty" filterfirst(isodd, [2, 4])
 
     @test uniqueonly([1, 1]) == 1
+    @test set([1, 1], uniqueonly, 2) == [2, 2]
     @test_throws "multiple unique" uniqueonly([1, 1, 2])
     @test uniqueonly(isodd, [1, 3]) == 1
     @test_throws "multiple unique" uniqueonly(isodd, [1, 1, 2])
@@ -141,6 +143,12 @@ end
     @test a[parentindices(auv)...] == auv
     auv .= [0, 10]
     @test a == [0, 10, 0, 10, 0, 0, 10, 0, 10, 0]
+
+
+    for uf in (unique, uniqueview)
+        Accessors.test_getset_laws(uf, [5, 1, 5, 2, 3], rand(4), rand(4))
+        @test modify(x -> 1:length(x), [:a, :b, :a, :a, :b], uf) == [1, 2, 1, 1, 2]
+    end
 end
 
 @testitem "materialize_views" begin

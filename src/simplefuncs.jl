@@ -26,3 +26,7 @@ function uniqueonly(f, A)
     allequal(mapview(f, A)) || throw(ArgumentError("multiple unique values"))
     return first(A)
 end
+
+
+Accessors.set(obj, ::typeof(uniqueonly), v) = set(obj, Elements(), v)
+Accessors.set(obj, o::Base.Fix1{typeof(filteronly)}, v) = set(obj, Elements() ⨟ If(o.x), v)
