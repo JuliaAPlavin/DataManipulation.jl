@@ -2,7 +2,7 @@ module StructArraysExt
 using StructArrays
 using DataManipulation.Accessors
 using DataManipulation.DataPipes
-import DataManipulation: _mapmerge, _merge_insert, mapinsert⁻, nest, materialize_views, StrRe
+import DataManipulation: _mapmerge, _merge_insert, mapinsert⁻, nest, materialize_views, StaticRegex
 
 function _mapmerge(A::StructArray{<:NamedTuple}, mapf, mergef; kwargs...)
     new_comps = map(values(kwargs)) do fx
@@ -24,7 +24,7 @@ function mapinsert⁻(A::StructArray; kwargs...)
 end
 
 
-Base.getindex(A::StructArray, p::Union{StrRe, Pair{<:StrRe}}, args...) =
+Base.getindex(A::StructArray, p::Union{StaticRegex, Pair{<:StaticRegex}}, args...) =
     @modify(StructArrays.components(A)) do nt
         nt[p, args...]
     end

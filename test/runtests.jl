@@ -208,13 +208,13 @@ end
     using StructArrays
 
     nt = (a_1=1, a_2=10, b_1=100)
-    @test nt[cr"a_\d"] === (a_1 = 1, a_2 = 10)
-    @test nt[cr"a_(\d)" => cs"xxx_\1_xxx"] === (xxx_1_xxx = 1, xxx_2_xxx = 10)
-    @test nt[cr"a_(\d)" => cs"x_\1", cr"b.*"] === (x_1 = 1, x_2 = 10, b_1 = 100)
-    @test_broken (nt[cr"a_(\d)" => (x -> x), cr"b.*"]; true)  # cannot avoid "method too new" error
+    @test nt[sr"a_\d"] === (a_1 = 1, a_2 = 10)
+    @test nt[sr"a_(\d)" => ss"xxx_\1_xxx"] === (xxx_1_xxx = 1, xxx_2_xxx = 10)
+    @test nt[sr"a_(\d)" => ss"x_\1", sr"b.*"] === (x_1 = 1, x_2 = 10, b_1 = 100)
+    @test_broken (nt[sr"a_(\d)" => (x -> x), sr"b.*"]; true)  # cannot avoid "method too new" error
 
     A = StructArray(a_1=[1], a_2=[10], b_1=[100])
-    B = A[cr"a_\d"]
+    B = A[sr"a_\d"]
     @test B == StructArray(a_1=[1], a_2=[10])
     @test B.a_1 === A.a_1
 end
@@ -222,43 +222,43 @@ end
 @testitem "nest" begin
     using StructArrays
 
-    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" )) ===
+    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), sr"(a)_(\w+)" )) ===
         (a=(x=1, y="2", z_z=3), b=:z)
-    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)(?:_(\w+))" )) ===
+    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), sr"(a)(?:_(\w+))" )) ===
         (a=(x=1, y="2", z_z=3), b=:z)
-    @test @inferred(nest( (b=:z,), cr"(a)_(\w+)" )) ===
+    @test @inferred(nest( (b=:z,), sr"(a)_(\w+)" )) ===
         (b=:z,)
-    @test @inferred(nest( (x_a=1, y_a="2", z_z_a=3, b=:z), cr"(?<y>\w+)_(?<x>a)" )) ===
+    @test @inferred(nest( (x_a=1, y_a="2", z_z_a=3, b=:z), sr"(?<y>\w+)_(?<x>a)" )) ===
         (a=(x=1, y="2", z_z=3), b=:z)
-    @test @inferred(nest( (x_a=1, y_a="2", z_z_a=3, b_aa=1, b_a="xxx"), cr"(?<y>\w+)_(?<x>a)|(b)_(\w+)" )) ===
+    @test @inferred(nest( (x_a=1, y_a="2", z_z_a=3, b_aa=1, b_a="xxx"), sr"(?<y>\w+)_(?<x>a)|(b)_(\w+)" )) ===
         (a=(x=1, y="2", z_z=3, b="xxx"), b=(aa=1,))
-    @test @inferred(nest( (x_a=1, y_a="2", z_z_a=3, b_aa=1, b_a="xxx"), cr"(b)_(\w+)|(?<y>\w+)_(?<x>a)" )) ===
+    @test @inferred(nest( (x_a=1, y_a="2", z_z_a=3, b_aa=1, b_a="xxx"), sr"(b)_(\w+)|(?<y>\w+)_(?<x>a)" )) ===
         (a=(x=1, y="2", z_z=3), b=(aa=1, a="xxx"))
 
-    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" => (cs"xabc", cs"val_\2") )) ===
+    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), sr"(a)_(\w+)" => (ss"xabc", ss"val_\2") )) ===
         (xabc=(val_x=1, val_y="2", val_z_z=3), b=:z)
-    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)(?:_(\w+))" => (cs"xabc", cs"val_\2") )) ===
+    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), sr"(a)(?:_(\w+))" => (ss"xabc", ss"val_\2") )) ===
         (xabc=(val_x=1, val_y="2", val_z_z=3), b=:z)
-    @test @inferred(nest( (a=0, a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)(?:_(\w+))?" => (cs"xabc", cs"val_\2") )) ===
+    @test @inferred(nest( (a=0, a_x=1, a_y="2", a_z_z=3, b=:z), sr"(a)(?:_(\w+))?" => (ss"xabc", ss"val_\2") )) ===
         (xabc=(val_=0, val_x=1, val_y="2", val_z_z=3), b=:z)
-    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" => (cs"x\1", cs"val", cs"\2") )) ===
+    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), sr"(a)_(\w+)" => (ss"x\1", ss"val", ss"\2") )) ===
         (xa=(val=(x=1, y="2", z_z=3),), b=:z)
-    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" => (cs"\2_\1",) )) ===
+    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), sr"(a)_(\w+)" => (ss"\2_\1",) )) ===
         (x_a=1, y_a="2", z_z_a=3, b=:z)
 
-    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b_1=:z, b_2=5), cr"(a)_(\w+)", cr"(b)_(\d)" => (cs"\1", cs"i\2") )) ===
+    @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b_1=:z, b_2=5), sr"(a)_(\w+)", sr"(b)_(\d)" => (ss"\1", ss"i\2") )) ===
         (a=(x=1, y="2", z_z=3), b=(i1=:z, i2=5))
-    @test_broken @inferred(nest( (a_a=1, a_b=2, b=3), cr"(a)_(\w)", cr"(\w)" => (cs"xx", cs"\1") )) ===
+    @test_broken @inferred(nest( (a_a=1, a_b=2, b=3), sr"(a)_(\w)", sr"(\w)" => (ss"xx", ss"\1") )) ===
         (a=(a=1, b=2), xx=(b=3,))
 
 
-    @test_throws "not unique" @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a).+" )) ===
+    @test_throws "not unique" @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), sr"(a).+" )) ===
         (a=(x=1, y="2", z_z=3), b=:z)
-    @test_throws "not unique" @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" => (cs"xabc",) )) ===
+    @test_throws "not unique" @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), sr"(a)_(\w+)" => (ss"xabc",) )) ===
         (xabc=(val_x=1, val_y="2", val_z_z=3), b=:z)
 
     sa = StructArray(a_x=[1], a_y=["2"], a_z_z=[3], b=[:z])
-    san = @inferred nest(sa, cr"(a)_(\w+)")
+    san = @inferred nest(sa, sr"(a)_(\w+)")
     @test only(san) === (a=(x=1, y="2", z_z=3), b=:z)
     @test san.a.x === sa.a_x
     @test san.b === sa.b

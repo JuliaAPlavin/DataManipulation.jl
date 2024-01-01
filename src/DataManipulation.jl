@@ -14,7 +14,7 @@ export
     mapset, mapinsert, mapinsert⁻, mapsetview, mapinsertview,
     sortview, uniqueview,
     materialize_views, collectview,
-    nest, @cr_str, @cs_str,
+    nest, @sr_str, @ss_str,
     shift_range,
     rev
 

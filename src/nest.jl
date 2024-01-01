@@ -1,13 +1,13 @@
-@generated function nest(x::NamedTuple{KS}, ::StrRe{SR}) where {KS, SR}
+@generated function nest(x::NamedTuple{KS}, ::StaticRegex{SR}) where {KS, SR}
     regex = _anchored_regex(SR)
     _nest_code(KS, regex) do m
         @p m |> pairs |> collect |> filter(!isnothing(last(_))) |> sort |> map(last) |> map(Symbol)
     end
 end
 
-@generated function nest(x::NamedTuple{KS}, ::Pair{StrRe{SR}, SS}) where {KS, SR, SS <: Tuple}
+@generated function nest(x::NamedTuple{KS}, ::Pair{StaticRegex{SR}, SS}) where {KS, SR, SS <: Tuple}
     regex = _anchored_regex(SR)
-    extract_sub(::Type{StrSub{S}}) where {S} = SubstitutionString(string(S))
+    extract_sub(::Type{StaticSubstitution{S}}) where {S} = SubstitutionString(string(S))
     subs = map(extract_sub, SS.types)
     _nest_code(KS, regex) do m
         @p subs |> map(sub -> replace(m.match, regex => sub)) |> map(Symbol)

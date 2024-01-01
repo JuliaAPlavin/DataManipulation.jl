@@ -1,13 +1,13 @@
 # struct Str{S} end
-struct StrRe{S} end
-struct StrSub{S} end
+struct StaticRegex{S} end
+struct StaticSubstitution{S} end
 
 # macro c_str(x)
 # 	:($Str{Symbol($x)}())
 # end
-macro cr_str(x)
-	:($StrRe{Symbol($x)}())
+macro sr_str(x)
+	:($StaticRegex{Symbol($x)}())
 end
-macro cs_str(x)
-	:($StrSub{Symbol($x)}())
+macro ss_str(x)
+	:($StaticSubstitution{Symbol($x)}())
 end
