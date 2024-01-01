@@ -22,10 +22,12 @@ export
 include("symbols.jl")
 include("simplefuncs.jl")
 include("views.jl")
-include("nest.jl")
 include("mutate.jl")
 include("uniqueview.jl")
 include("discreterange.jl")
+include("typeval_strings.jl")
+include("comptime_indexing.jl")
+include("nest.jl")
 
 
 """    shift_range(x, a..b => A..B; clamp=false)

@@ -204,6 +204,21 @@ end
     @test collectview(group(isodd, 3 .* [1, 2, 3, 4, 5]))::Vector{<:SubArray{Int}} == [[3, 9, 15], [6, 12]]
 end
 
+@testitem "comptime indexing" begin
+    using StructArrays
+
+    nt = (a_1=1, a_2=10, b_1=100)
+    @test nt[cr"a_\d"] === (a_1 = 1, a_2 = 10)
+    @test nt[cr"a_(\d)" => cs"xxx_\1_xxx"] === (xxx_1_xxx = 1, xxx_2_xxx = 10)
+    @test nt[cr"a_(\d)" => cs"x_\1", cr"b.*"] === (x_1 = 1, x_2 = 10, b_1 = 100)
+    @test_broken (nt[cr"a_(\d)" => (x -> x), cr"b.*"]; true)  # cannot avoid "method too new" error
+
+    A = StructArray(a_1=[1], a_2=[10], b_1=[100])
+    B = A[cr"a_\d"]
+    @test B == StructArray(a_1=[1], a_2=[10])
+    @test B.a_1 === A.a_1
+end
+
 @testitem "nest" begin
     using StructArrays
 
