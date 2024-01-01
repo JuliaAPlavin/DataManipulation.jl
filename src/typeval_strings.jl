@@ -11,3 +11,6 @@ end
 macro ss_str(x)
 	:($StaticSubstitution{Symbol($x)}())
 end
+
+unstatic(::Type{StaticRegex{S}}) where {S} = Regex(String(S))
+unstatic(::Type{StaticSubstitution{S}}) where {S} = SubstitutionString(String(S))

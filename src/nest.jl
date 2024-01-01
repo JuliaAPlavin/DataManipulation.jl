@@ -7,8 +7,7 @@ end
 
 @generated function nest(x::NamedTuple{KS}, ::Pair{StaticRegex{SR}, SS}) where {KS, SR, SS <: Tuple}
     regex = _anchored_regex(SR)
-    extract_sub(::Type{StaticSubstitution{S}}) where {S} = SubstitutionString(string(S))
-    subs = map(extract_sub, SS.types)
+    subs = map(unstatic, SS.types)
     _nest_code(KS, regex) do m
         @p subs |> map(sub -> replace(m.match, regex => sub)) |> map(Symbol)
     end

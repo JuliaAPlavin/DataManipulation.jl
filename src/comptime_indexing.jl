@@ -2,15 +2,15 @@
     :( merge(nt[p], nt[args...]))
 end
 
-@generated function Base.getindex(nt::NamedTuple{NS}, ::StaticRegex{SR}) where {NS, SR}
-    regex = Regex(String(SR))
+@generated function Base.getindex(nt::NamedTuple{NS}, SR::StaticRegex) where {NS}
+    regex = unstatic(SR)
     ns = filter(n -> occursin(regex, String(n)), NS)
     return :( nt[$ns] )
 end
 
-@generated function Base.getindex(nt::NamedTuple{NS}, ::Pair{StaticRegex{SR}, StaticSubstitution{SS}}) where {NS, SR, SS}
-    regex = Regex(String(SR))
-    subs = SubstitutionString(String(SS))
+@generated function Base.getindex(nt::NamedTuple{NS}, ::Pair{SR, SS}) where {NS, SR<:StaticRegex, SS<:StaticSubstitution}
+    regex = unstatic(SR)
+    subs = unstatic(SS)
     ns = filter(n -> occursin(regex, String(n)), NS)
     nss = map(n -> replace(String(n), regex => subs) |> Symbol, ns)
     return :( NamedTuple{$nss}(($([:(nt.$ns) for ns in ns]...),)) )
