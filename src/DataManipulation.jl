@@ -12,7 +12,6 @@ using AccessorsExtra  # for values()
 export
     @S_str,
     findonly, filterfirst, filteronly, uniqueonly,
-    mapset, mapinsert, mapinsert⁻, mapsetview, mapinsertview,
     sortview, uniqueview,
     materialize_views, collectview,
     nest, @sr_str, @ss_str,
@@ -25,7 +24,6 @@ export
 include("symbols.jl")
 include("simplefuncs.jl")
 include("views.jl")
-include("mutate.jl")
 include("uniqueview.jl")
 include("discreterange.jl")
 include("typeval_strings.jl")
