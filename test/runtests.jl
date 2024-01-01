@@ -3,24 +3,49 @@ using TestItemRunner
 @run_package_tests
 
 
-@testitem "simple funcs" begin
+@testitem "findonly" begin
     @test @inferred(findonly(iseven, [11, 12])) == 2
     @test_throws "multiple elements" findonly(isodd, [1, 2, 3])
     @test_throws "no element" findonly(isodd, [2, 4])
 
+    @test @inferred(findonly(iseven, (11, 12))) == 2
+end
+
+@testitem "filteronly" begin
     @test @inferred(filteronly(iseven, [11, 12])) == 12
     @test set([11, 12], @optic(filteronly(iseven, _)), 2) == [11, 2]
+    @test delete([11, 12], @optic(filteronly(iseven, _))) == [11]
+
+    @test @inferred(filteronly(iseven, (11, 12))) == 12
+    @test set((11, 12), @optic(filteronly(iseven, _)), 2) == (11, 2)
+    @test delete((11, 12), @optic(filteronly(iseven, _))) == (11,)
+
     @test_throws "multiple elements" filteronly(isodd, [1, 2, 3])
     @test_throws "is empty" filteronly(isodd, [2, 4])
+end
 
+@testitem "filterfirst" begin
     @test @inferred(filterfirst(iseven, [11, 12, 14])) == 12
+    @test set([11, 12, 14], @optic(filterfirst(iseven, _)), 2) == [11, 2, 14]
+    @test delete([11, 12, 14], @optic(filterfirst(iseven, _))) == [11, 14]
     @test_throws "must be non-empty" filterfirst(isodd, [2, 4])
 
+    @test @inferred(filterfirst(iseven, (11, 12, 14))) == 12
+    @test set((11, 12, 14), @optic(filterfirst(iseven, _)), 2) == (11, 2, 14)
+    @test delete((11, 12, 14), @optic(filterfirst(iseven, _))) == (11, 14)
+end
+
+@testitem "uniqueonly" begin
     @test uniqueonly([1, 1]) == 1
     @test set([1, 1], uniqueonly, 2) == [2, 2]
     @test_throws "multiple unique" uniqueonly([1, 1, 2])
+
     @test uniqueonly(isodd, [1, 3]) == 1
     @test_throws "multiple unique" uniqueonly(isodd, [1, 1, 2])
+
+    @test uniqueonly((1, 1)) == 1
+    @test set((1, 1), uniqueonly, 2) == (2, 2)
+    @test uniqueonly(isodd, (1, 3)) == 1
 end
 
 @testitem "symbols" begin

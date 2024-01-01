@@ -31,4 +31,8 @@ end
 
 
 Accessors.set(obj, ::typeof(uniqueonly), v) = set(obj, Elements(), v)
-Accessors.set(obj, o::Base.Fix1{typeof(filteronly)}, v) = set(obj, Elements() ⨟ If(o.x), v)
+Accessors.set(obj, o::Base.Fix1{typeof(filterfirst)}, v) = @set obj[findfirst(o.x, obj)] = v
+Accessors.set(obj, o::Base.Fix1{typeof(filteronly)}, v) = @set obj[findonly(o.x, obj)] = v
+
+Accessors.delete(obj, o::Base.Fix1{typeof(filterfirst)}) = @delete obj[findfirst(o.x, obj)]
+Accessors.delete(obj, o::Base.Fix1{typeof(filteronly)}) = @delete obj[findonly(o.x, obj)]
