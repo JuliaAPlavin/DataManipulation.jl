@@ -18,7 +18,7 @@ export
     filterview,
     sortview, uniqueview,
     materialize_views, collectview,
-    nest, @cr_str
+    nest, @cr_str, @cs_str
 
 
 include("symbols.jl")

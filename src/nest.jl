@@ -1,21 +1,40 @@
-# struct NestStr{S} end
-struct NestStrRe{S} end
+# struct Str{S} end
+struct StrRe{S} end
+struct StrSub{S} end
 
 # macro c_str(x)
-# 	:($NestStr{Symbol($x)}())
+# 	:($Str{Symbol($x)}())
 # end
 macro cr_str(x)
-	:($NestStrRe{Symbol($x)}())
+	:($StrRe{Symbol($x)}())
+end
+macro cs_str(x)
+	:($StrSub{Symbol($x)}())
 end
 
 
-@generated function nest(x::NamedTuple{KS}, ::NestStrRe{SR}) where {KS, SR}
-    regex = Regex(string(SR))
+@generated function nest(x::NamedTuple{KS}, ::StrRe{SR}) where {KS, SR}
+    regex = Regex(string(SR), Base.DEFAULT_COMPILER_OPTS | Base.PCRE.ANCHORED | Base.PCRE.ENDANCHORED, Base.DEFAULT_MATCH_OPTS)
     paths = map(KS) do k
-        m = match(regex, string(k), 1, Base.PCRE.ANCHORED | Base.PCRE.ENDANCHORED)
+        m = match(regex, string(k))
         isnothing(m) ?
             [k] :
             @p m |> pairs |> collect |> filter(!isnothing(last(_))) |> sort |> map(last) |> map(Symbol)
+    end
+    npairs = paths_to_nested_pairs(paths, KS)
+    nested_pairs_to_ntexpr(npairs)
+end
+
+@generated function nest(x::NamedTuple{KS}, ::Pair{StrRe{SR}, SS}) where {KS, SR, SS <: Tuple}
+    regex = Regex(string(SR), Base.DEFAULT_COMPILER_OPTS | Base.PCRE.ANCHORED | Base.PCRE.ENDANCHORED, Base.DEFAULT_MATCH_OPTS)
+    extract_sub(::Type{StrSub{S}}) where {S} = SubstitutionString(string(S))
+    subs = map(extract_sub, SS.types)
+    paths = map(KS) do k
+        ks = string(k)
+        m = match(regex, ks)
+        isnothing(m) ?
+            [k] :
+            @p subs |> map(sub -> replace(ks, regex => sub)) |> map(Symbol)
     end
     npairs = paths_to_nested_pairs(paths, KS)
     nested_pairs_to_ntexpr(npairs)
