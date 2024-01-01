@@ -2,7 +2,7 @@
 
 Materialize views arbitrarily nested in dictionaries and `StructArray`s. """
 materialize_views(A::AbstractArray) = map(materialize_views, A)
-materialize_views(A::AbstractDict) = FlexiGroups.mapvalues(materialize_views, A)
+# materialize_views(A::AbstractDict) = @modify(materialize_views, values(A)[∗])  # requires AccessorsExtra
 materialize_views(A) = A
 
 """    collectview(X)
