@@ -14,7 +14,8 @@ export
     mapset, mapinsert, mapinsert⁻, mapsetview, mapinsertview,
     sortview, uniqueview,
     materialize_views, collectview,
-    nest, @cr_str, @cs_str
+    nest, @cr_str, @cs_str,
+    shift_range
 
 
 include("symbols.jl")
@@ -24,6 +25,13 @@ include("nest.jl")
 include("mutate.jl")
 include("uniqueview.jl")
 include("discreterange.jl")
+
+
+"""    shift_range(x, a..b => A..B; clamp=false)
+
+Linearly transform `x` from range `a..b` to `A..B`.
+"""
+function shift_range end
 
 
 # some interactions: include type piracy, but this cannot be put in upstream packages

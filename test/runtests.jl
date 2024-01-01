@@ -87,6 +87,27 @@ end
     end
 end
 
+@testitem "shift_range" begin
+    using IntervalSets
+    using InverseFunctions
+
+    f = Base.Fix2(shift_range, 1..2 => 20..30)
+    @test f(1) == 20
+    @test f(1.6) == 26
+    @test f(-2) == -10
+    InverseFunctions.test_inverse(f, 1.2)
+
+    f = Base.Fix2(shift_range, 1..2 => 30..20)
+    @test f(1) == 30
+    @test f(1.6) == 24
+    @test f(-2) == 60
+    InverseFunctions.test_inverse(f, 1.2)
+
+    @test shift_range(1, 1..2 => 20..30; clamp=true) == 20
+    @test shift_range(1.6, 1..2 => 20..30; clamp=true) == 26
+    @test shift_range(-2, 1..2 => 20..30; clamp=true) == 20
+end
+
 @testitem "interactions" begin
     using Dictionaries
     using StructArrays
