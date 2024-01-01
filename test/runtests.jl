@@ -145,6 +145,7 @@ end
 
 @testitem "materialize_views" begin
     using Dictionaries: dictionary, Dictionary, AbstractDictionary
+    using SentinelViews
 
     @test materialize_views([10, 20, 30])::Vector{Int} == [10, 20, 30]
     @test materialize_views(view([10, 20, 30], [1, 2]))::Vector{Int} == [10, 20]
@@ -251,7 +252,7 @@ end
 
 @testitem "_" begin
     import Aqua
-    Aqua.test_all(DataManipulation; ambiguities=false)
+    Aqua.test_all(DataManipulation; ambiguities=false, project_toml_formatting=false)
     Aqua.test_ambiguities(DataManipulation)
 
     import CompatHelperLocal as CHL

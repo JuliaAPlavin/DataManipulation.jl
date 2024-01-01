@@ -1,13 +1,10 @@
 module DataManipulation
 
-using StructArrays
-using Dictionaries: AbstractDictionary, Dictionary, ArrayDictionary
 using InverseFunctions
 using Accessors
 using Reexport
 @reexport using DataPipes
 @reexport using Skipper
-@reexport using SentinelViews
 @reexport using FlexiGroups
 @reexport using FlexiMaps
 
