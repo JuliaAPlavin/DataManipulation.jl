@@ -6,7 +6,7 @@ sortview(A; kwargs...) = view(A, sortperm(A; kwargs...))
 """    uniqueview([f], X)
 Like `unique([f], X)`, but returns a view instead of a copy. """
 uniqueview(A) = uniqueview(identity, A)
-uniqueview(f::Function, A) = UniqueView(A, groupfind(f, A) |> values |> collect)
+uniqueview(f::F, A) where {F} = UniqueView(A, groupfind(f, A) |> values |> collect)
 
 struct UniqueView{T, TX <: AbstractArray{T}, TI} <: AbstractVector{T}
     parent::TX

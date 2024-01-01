@@ -1,25 +1,25 @@
 """    findonly(pred, X)
 
 Like `findfirst(pred, X)`, but ensures that exactly a single match is present. """
-function findonly(pred, A)
+function findonly(pred::F, A) where {F}
     ix = findfirst(pred, A)
     isnothing(ix) && throw(ArgumentError("no element satisfies the predicate"))
     isnothing(findnext(pred, A, nextind(A, ix))) || throw(ArgumentError("multiple elements satisfy the predicate"))
     return ix
 end
 
-findonly(pred, A::NamedTuple{KS}) where {KS} = KS[findonly(pred, Tuple(A))]
+findonly(pred::F, A::NamedTuple{KS}) where {F,KS} = KS[findonly(pred, Tuple(A))]
 
 
 """    filterfirst(pred, X)
 
 More efficient `first(filter(pred, X))`. """
-filterfirst(pred, A) = @p A |> Iterators.filter(pred) |> first
+filterfirst(pred::F, A) where {F} = @p A |> Iterators.filter(pred) |> first
 
 """    filteronly(pred, X)
 
 More efficient `only(filter(pred, X))`. """
-filteronly(pred, A) = @p A |> Iterators.filter(pred) |> only
+filteronly(pred::F, A) where {F} = @p A |> Iterators.filter(pred) |> only
 
 """    uniqueonly([pred], X)
 
@@ -27,7 +27,7 @@ More efficient `only(unique([pred], X))`. """
 function uniqueonly end
 
 uniqueonly(A) = uniqueonly(identity, A)
-function uniqueonly(f, A)
+function uniqueonly(f::F, A) where {F}
     allequal(mapview(f, A)) || throw(ArgumentError("multiple unique values"))
     return first(A)
 end
