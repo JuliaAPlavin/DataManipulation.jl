@@ -193,6 +193,7 @@ end
     auv .= f.(auv)
     @test a == 10 .* a_orig
     @test auv == unique(a)
+    @test cnt[] == 5
 
     a = [1:5; 5:-1:1]
     au = unique(isodd, a)
@@ -202,10 +203,14 @@ end
     auv .= [0, 10]
     @test a == [0, 10, 0, 10, 0, 0, 10, 0, 10, 0]
 
-
     for uf in (unique, uniqueview)
         Accessors.test_getset_laws(uf, [5, 1, 5, 2, 3], rand(4), rand(4))
-        @test modify(x -> 1:length(x), [:a, :b, :a, :a, :b], uf) == [1, 2, 1, 1, 2]
+        @test @inferred(modify(x -> 1:length(x), [:a, :b, :a, :a, :b], uf)) == [1, 2, 1, 1, 2]
+
+        cnt = Ref(0)
+        f(x) = (cnt[] += 1; 2x)
+        @test modify(f, [1:5; 1:10], @optic(uf(_) |> Elements())) == [2:2:10; 2:2:20]
+        @test cnt[] == 10
     end
 end
 

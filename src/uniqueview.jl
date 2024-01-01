@@ -40,6 +40,12 @@ function Accessors.set(obj, ::typeof(uniqueview), val)
     setall(obj, Elements(), @views val[IXs])
 end
 
+function Accessors.modify(f, obj, ::typeof(uniqueview))
+    uv = uniqueview(obj)
+    val = f(uv)
+    setall(obj, Elements(), @views val[inverseindices(uv)])
+end
+
 function Accessors.set(obj, ::typeof(unique), val)
     IXs = inverseindices(uniqueview(obj))
     setall(obj, Elements(), @views val[IXs])
