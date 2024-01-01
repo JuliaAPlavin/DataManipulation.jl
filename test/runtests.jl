@@ -333,7 +333,7 @@ end
 
 @testitem "_" begin
     import Aqua
-    Aqua.test_all(DataManipulation; ambiguities=false, project_toml_formatting=false, piracy=false)  # piracy - only set(unique)?
+    Aqua.test_all(DataManipulation; ambiguities=false, piracies=false)  # piracy - only set(unique)?
     Aqua.test_ambiguities(DataManipulation)
 
     import CompatHelperLocal as CHL
