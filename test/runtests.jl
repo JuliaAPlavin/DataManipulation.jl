@@ -194,6 +194,8 @@ end
 end
 
 @testitem "nest" begin
+    using StructArrays
+
     @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" )) ===
         (a=(x=1, y="2", z_z=3), b=:z)
     @test @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)(?:_(\w+))" )) ===
@@ -228,6 +230,12 @@ end
         (a=(x=1, y="2", z_z=3), b=:z)
     @test_throws "not unique" @inferred(nest( (a_x=1, a_y="2", a_z_z=3, b=:z), cr"(a)_(\w+)" => (cs"xabc",) )) ===
         (xabc=(val_x=1, val_y="2", val_z_z=3), b=:z)
+
+    sa = StructArray(a_x=[1], a_y=["2"], a_z_z=[3], b=[:z])
+    san = @inferred nest(sa, cr"(a)_(\w+)")
+    @test only(san) === (a=(x=1, y="2", z_z=3), b=:z)
+    @test san.a.x === sa.a_x
+    @test san.b === sa.b
 end
 
 

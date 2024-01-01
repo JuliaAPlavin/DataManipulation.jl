@@ -13,6 +13,16 @@ macro cs_str(x)
 end
 
 
+function nest(x::StructArray, args...)
+    comps = StructArrays.components(x)
+    comps_n = nest(comps, args...)
+    _sa_from_comps_nested(comps_n)
+end
+
+_sa_from_comps_nested(X::AbstractArray) = X
+_sa_from_comps_nested(X::Union{Tuple,NamedTuple}) = StructArray(map(_sa_from_comps_nested, X))
+
+
 @generated function nest(x::NamedTuple{KS}, ::StrRe{SR}) where {KS, SR}
     regex = _anchored_regex(SR)
     _nest_code(KS, regex) do m
