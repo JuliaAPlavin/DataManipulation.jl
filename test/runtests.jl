@@ -242,6 +242,11 @@ end
     B = A[sr"a_\d"]
     @test B == StructArray(a_1=[1], a_2=[10])
     @test B.a_1 === A.a_1
+
+    @test @delete(nt[sr"a_\d"]) === (b_1 = 100,)
+    B = @delete A[sr"a_\d"]
+    @test B == StructArray(b_1=[100])
+    @test B.b_1 === A.b_1
 end
 
 @testitem "nest" begin

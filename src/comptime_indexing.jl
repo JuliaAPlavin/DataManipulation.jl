@@ -1,6 +1,4 @@
-@generated function Base.getindex(nt::NamedTuple, p::Union{StaticRegex, Pair{<:StaticRegex}}, args...)
-    :( merge(nt[p], nt[args...]))
-end
+Base.getindex(nt::NamedTuple, p::Union{StaticRegex, Pair{<:StaticRegex}}, args...) = merge(nt[p], nt[args...])
 
 @generated function Base.getindex(nt::NamedTuple{NS}, SR::StaticRegex) where {NS}
     regex = unstatic(SR)
@@ -23,3 +21,14 @@ end
 #     nss = map(n -> replace(String(n), regex => s -> Base.invokelatest(F.instance, s)) |> Symbol, ns)
 #     return :( NamedTuple{$nss}(($([:(nt.$ns) for ns in ns]...),)) )
 # end
+
+
+Accessors.delete(nt::NamedTuple, o::IndexLens{<:Tuple{StaticRegex, Vararg{Any}}}) = _delete(nt, o.indices...)
+
+_delete(nt::NamedTuple, p::Union{StaticRegex, Pair{<:StaticRegex}}, args...) = _delete(_delete(nt, p), args...)
+
+@generated function _delete(nt::NamedTuple{NS}, SR::StaticRegex) where {NS}
+    regex = unstatic(SR)
+    ns = filter(n -> !occursin(regex, String(n)), NS)
+    return :( nt[$ns] )
+end

@@ -29,6 +29,11 @@ Base.getindex(A::StructArray, p::Union{StaticRegex, Pair{<:StaticRegex}}, args..
         nt[p, args...]
     end
 
+Accessors.delete(A::StructArray, o::IndexLens{<:Tuple{StaticRegex, Vararg{Any}}}) = 
+    @modify(StructArrays.components(A)) do nt
+        delete(nt, o)
+    end
+
 
 function nest(x::StructArray, args...)
     comps = StructArrays.components(x)
