@@ -30,6 +30,8 @@ include("typeval_strings.jl")
 include("comptime_indexing.jl")
 include("nest.jl")
 
+include("../ext/DictionariesExt.jl")
+
 
 """    shift_range(x, a..b => A..B; clamp=false)
 
