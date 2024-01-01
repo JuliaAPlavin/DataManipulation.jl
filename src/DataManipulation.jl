@@ -1,7 +1,7 @@
 module DataManipulation
 
 using StructArrays
-using Dictionaries
+using Dictionaries: AbstractDictionary, Dictionary, ArrayDictionary
 using InverseFunctions
 using Accessors
 using Reexport
@@ -15,7 +15,6 @@ export
     @S_str,
     findonly, filterfirst, filteronly, uniqueonly,
     mapset, mapinsert, mapinsert⁻, mapsetview, mapinsertview,
-    filterview,
     sortview, uniqueview,
     materialize_views, collectview,
     nest, @cr_str, @cs_str
@@ -26,7 +25,6 @@ include("simplefuncs.jl")
 include("views.jl")
 include("nest.jl")
 include("mutate.jl")
-include("filterview.jl")
 include("uniqueview.jl")
 include("discreterange.jl")
 
