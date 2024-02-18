@@ -8,6 +8,8 @@ using AccessorsExtra  # for values()
 @reexport using Skipper
 @reexport using FlexiGroups
 @reexport using FlexiMaps
+using StructArrays
+
 
 export
     @S_str,
@@ -17,8 +19,8 @@ export
     nest, @sr_str, @ss_str,
     shift_range,
     discreterange,
-    @o,
-    rev
+    rev,
+    vcat_concrete
 
 
 include("symbols.jl")
@@ -29,8 +31,10 @@ include("discreterange.jl")
 include("typeval_strings.jl")
 include("comptime_indexing.jl")
 include("nest.jl")
+include("vcat.jl")
 
 include("../ext/DictionariesExt.jl")
+include("../ext/StructArraysExt.jl")
 
 
 """    shift_range(x, a..b => A..B; clamp=false)

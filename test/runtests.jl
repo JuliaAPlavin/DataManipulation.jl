@@ -316,20 +316,28 @@ end
 #     # @test replace( (name="abc", ra=1, dec=2), @o(_[(:ra, :dec)]) => tuple => @o(_.coords) ) == (name="abc", coords=(1, 2))
 # end
 
-# @testitem "vcat" begin
-#     X = [(a=1, b=2), (a=2, b=3)]
-#     Y = [(a=2, b=1)]
+@testitem "vcat" begin
+    using StructArrays
 
-#     # @test vcat_data(X, Y, fields=:setequal)
-#     # @test vcat_data(X, Y, fields=:equal)
-#     # @test vcat_data(X, Y, fields=intersect)
-#     # @test vcat_data(X, Y, fields=union)
-#     @test vcat_data(X, Y) == [(a=1, b=2), (a=2, b=3), (a=2, b=1)]
-#     @test vcat_data(X, Y; source=@o(_.src)) == [(a=1, b=2, src=1), (a=2, b=3, src=1), (a=2, b=1, src=2)]
-#     @test reduce(vcat_data, (X, Y); source=@o(_.src)) == [(a=1, b=2, src=1), (a=2, b=3, src=1), (a=2, b=1, src=2)]
-#     @test reduce(vcat_data, (; X, Y); source=@o(_.src)) == [(a=1, b=2, src=:X), (a=2, b=3, src=:X), (a=2, b=1, src=:Y)]
-#     @test reduce(vcat_data, Dict("X" => X, "Y" => Y); source=@o(_.src)) |> sort == [(a=1, b=2, src="X"), (a=2, b=3, src="X"), (a=2, b=1, src="Y")] |> sort
-# end
+    X = StructArray(x=[(a=1, b=2), (a=2, b=3)])
+    Y = StructArray(x=[(a=3,), (a=4,)])
+    @test vcat(X, Y).x::Vector{NamedTuple} == [(a=1, b=2), (a=2, b=3), (a=3,), (a=4,)]
+    @test vcat_concrete(X, Y).x::AbstractVector{@NamedTuple{a::Int}} == [(a=1,), (a=2,), (a=3,), (a=4,)]
+    @test vcat_concrete(X, Y).x.a == [1, 2, 3, 4]
+
+    # X = [(a=1, b=2), (a=2, b=3)]
+    # Y = [(a=2, b=1)]
+
+    # @test vcat_data(X, Y, fields=:setequal)
+    # @test vcat_data(X, Y, fields=:equal)
+    # @test vcat_data(X, Y, fields=intersect)
+    # @test vcat_data(X, Y, fields=union)
+    # @test vcat_data(X, Y) == [(a=1, b=2), (a=2, b=3), (a=2, b=1)]
+    # @test vcat_data(X, Y; source=@o(_.src)) == [(a=1, b=2, src=1), (a=2, b=3, src=1), (a=2, b=1, src=2)]
+    # @test reduce(vcat_data, (X, Y); source=@o(_.src)) == [(a=1, b=2, src=1), (a=2, b=3, src=1), (a=2, b=1, src=2)]
+    # @test reduce(vcat_data, (; X, Y); source=@o(_.src)) == [(a=1, b=2, src=:X), (a=2, b=3, src=:X), (a=2, b=1, src=:Y)]
+    # @test reduce(vcat_data, Dict("X" => X, "Y" => Y); source=@o(_.src)) |> sort == [(a=1, b=2, src="X"), (a=2, b=3, src="X"), (a=2, b=1, src="Y")] |> sort
+end
 
 @testitem "_" begin
     import Aqua
